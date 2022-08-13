@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using MelonLoader;
 using Newtonsoft.Json;
 using System.IO;
-using FewdyTags.Utils;
+using FewTags.Utils;
 using System.Net;
 using ABI_RC.Core.Player;
 using ABI_RC.Core;
@@ -14,7 +14,7 @@ using Harmony;
 using UnityEngine;
 using System.Collections;
 
-namespace FewdyTags
+namespace FewTags
 {
     public class Main : MelonMod
     {
@@ -82,9 +82,8 @@ namespace FewdyTags
 
         private static void DownloadString()
         {
-            //Fewdy Got No Server so here is the heartbreacking part.
             using (WebClient wc = new WebClient())
-                _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Edward7s/FewTags-CVR/main/FewTags-CVR.json")); MelonLogger.Msg(_userArr.FirstOrDefault().Color[1]);
+                _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json")); MelonLogger.Msg(_userArr.FirstOrDefault().Color[1]);
         }
 
 

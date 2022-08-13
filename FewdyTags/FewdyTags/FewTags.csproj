@@ -7,8 +7,8 @@
     <ProjectGuid>{F30C37B8-DE98-43D8-8EC9-67C84948E417}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FewdyTags</RootNamespace>
-    <AssemblyName>FewdyTags</AssemblyName>
+    <RootNamespace>FewTags</RootNamespace>
+    <AssemblyName>FewTags</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -265,7 +265,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetPath)" "A:\steam\steamapps\common\ChilloutVR\MelonLoader\Mods" /Y /I
+    <PostBuildEvent>xcopy "$(TargetPath)" "D:\SteamLibrary\steamapps\common\ChilloutVR\Mods" /Y /I
 </PostBuildEvent>
   </PropertyGroup>
 </Project>

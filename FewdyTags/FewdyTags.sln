@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.3.32804.467
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32413.511
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FewdyTags", "FewdyTags\FewdyTags.csproj", "{F30C37B8-DE98-43D8-8EC9-67C84948E417}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FewTags", "FewdyTags\FewTags.csproj", "{F30C37B8-DE98-43D8-8EC9-67C84948E417}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
