@@ -58,10 +58,10 @@ namespace FewdyTags
             s_user = _userArr.FirstOrDefault(x => x.UserId == s_uId);
             if (s_user == null) return;
             for (int i = 0; i < s_user.NamePlatesText.Length; i++)
-                GeneratePlate(s_uId, s_user.NamePlatesText[i], i,(Color)new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
+                GeneratePlate(s_uId, s_user.NamePlatesText[i], i,new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
         }
 
-        private static void GeneratePlate(string uid,string plateText, int multiplier,Color color)
+        private static void GeneratePlate(string uid,string plateText, int multiplier,Color32 color)
         {
             s_temporaryNamePlate = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
             s_temporaryNamePlate.transform.localPosition = new Vector3(0,-0.15f - (multiplier) * 0.08f, 0);
