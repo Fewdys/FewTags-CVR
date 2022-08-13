@@ -14,6 +14,7 @@ namespace FewdyTags.Utils
             public int id { get; set; }
             public string UserId { get; set; }
             public string[] NamePlatesText { get; set; }
+            public int[] Color { get; set; }
         }
     }
 }
