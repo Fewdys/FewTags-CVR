@@ -84,7 +84,7 @@ namespace FewdyTags
         {
             //Fewdy Got No Server so here is the heartbreacking part.
             using (WebClient wc = new WebClient())
-                _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Edward7s/FewTags-CVR/main/FewTags-CVR.json"));         
+                _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Edward7s/FewTags-CVR/main/FewTags-CVR.json")); MelonLogger.Msg(_userArr.FirstOrDefault().Color[1]);
         }
 
 
