@@ -1,0 +1,19 @@
+{
+  "records": [
+    {
+      "id": 0,
+      "UserID": "",
+      "PlateText": "",
+      "PlateText2": "",
+      "PlateText3": "",
+      "PlateBigText": "",
+      "Malicious": false,
+      "Active": false,
+      "TextActive": false,
+      "Text2Active": false,
+      "Text3Active": false,
+      "BigTextActive": false,
+      "BigTextSize": ""
+    }
+  ]
+}
