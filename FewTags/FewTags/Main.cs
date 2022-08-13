@@ -40,6 +40,7 @@ namespace FewTags
             DownloadString();
             _hInstance.Patch(typeof(PlayerNameplate).GetMethod(nameof(PlayerNameplate.UpdateNamePlate)), null, typeof(Main).GetMethod(nameof(OnPlayerJoin),System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).ToNewHarmonyMethod());
             MelonCoroutines.Start(WaitForNamePlate());
+
         }
 
         private static IEnumerator WaitForNamePlate()
