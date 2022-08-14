@@ -1,7 +1,0 @@
-C:\Users\dipze\Desktop\CVR\FewTags\FewTags\FewTags\obj\Debug\FewTags.csproj.CoreCompileInputs.cache
-C:\Users\dipze\Desktop\CVR\FewTags\FewTags\FewTags\bin\Debug\FewTags.dll
-C:\Users\dipze\Desktop\CVR\FewTags\FewTags\FewTags\bin\Debug\FewTags.pdb
-C:\Users\dipze\Desktop\CVR\FewTags\FewTags\FewTags\bin\Debug\Newtonsoft.Json.dll
-C:\Users\dipze\Desktop\CVR\FewTags\FewTags\FewTags\obj\Debug\FewTags.csproj.CopyComplete
-C:\Users\dipze\Desktop\CVR\FewTags\FewTags\FewTags\obj\Debug\FewTags.dll
-C:\Users\dipze\Desktop\CVR\FewTags\FewTags\FewTags\obj\Debug\FewTags.pdb
