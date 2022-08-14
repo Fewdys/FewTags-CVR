@@ -7,3 +7,4 @@
 /.vs/slnx.sqlite
 *.suo
 /FewTags/FewTags/obj
+*.json
