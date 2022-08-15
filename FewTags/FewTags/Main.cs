@@ -14,6 +14,8 @@ using Harmony;
 using UnityEngine;
 using System.Collections;
 
+//Thanks To Edward7 For The Original Base
+
 namespace FewTags
 {
     public class Main : MelonMod
