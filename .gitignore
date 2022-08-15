@@ -8,3 +8,4 @@
 *.suo
 /FewTags/FewTags/obj
 *.cache
+*.json
