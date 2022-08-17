@@ -8,5 +8,6 @@
 *.suo
 /FewTags/FewTags/obj
 *.cache
-*.json
 *.sqlite-journal
+/.vs/ProjectSettings.json
+/.vs/VSWorkspaceState.json
