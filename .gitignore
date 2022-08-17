@@ -9,3 +9,4 @@
 /FewTags/FewTags/obj
 *.cache
 *.json
+*.sqlite-journal

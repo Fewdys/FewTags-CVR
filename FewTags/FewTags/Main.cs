@@ -64,6 +64,8 @@ namespace FewTags
                 GeneratePlate(s_uId, s_user.NamePlatesText[i], i,new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
         }
 
+        //GameObject.Destroy(s_temporaryNamePlate.transform.Find("TMP:PlayerRank").gameObject);
+
         private static void GeneratePlate(string uid,string plateText, int multiplier,Color32 color)
         {
             s_temporaryNamePlate = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
@@ -72,6 +74,7 @@ namespace FewTags
             GameObject.Destroy(s_temporaryNamePlate.transform.Find("Image/FriendsIndicator").gameObject);
             GameObject.Destroy(s_temporaryNamePlate.transform.Find("Image/ObjectMaskSlave").gameObject);
             GameObject.Destroy(s_temporaryNamePlate.transform.Find("Disable with Menu").gameObject);
+            GameObject.Destroy(s_namePlate.transform.Find("TMP:PlayerRank").gameObject);
             s_temporaryNamePlate.transform.localScale = new Vector3(0.3f, 0.3f, 1);
             s_temporaryNamePlate.transform.Find("Image").transform.localScale = new Vector3(1, 0.5f, 1);
             s_textMeshProGmj = s_temporaryNamePlate.transform.Find("TMP:Username").gameObject;
