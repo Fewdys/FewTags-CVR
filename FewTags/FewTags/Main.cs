@@ -22,6 +22,7 @@ namespace FewTags
     {
         private static List<Json.User> _userArr { get; set; }
         private static GameObject s_namePlate { get; set; }
+        private static GameObject s_dev { get; set; }
         private static GameObject s_temporaryNamePlate { get; set; }
         private static GameObject s_textMeshProGmj { get; set; }
 
@@ -50,7 +51,6 @@ namespace FewTags
             while (Resources.FindObjectsOfTypeAll<PuppetMaster>() == null)
                 yield return null;
             s_namePlate = Resources.FindObjectsOfTypeAll<PuppetMaster>().FirstOrDefault(x => x.name == "_NetworkedPlayerObject").transform.Find("[NamePlate]/Canvas/Content").gameObject;
-            GameObject.Destroy(s_namePlate.transform.Find("TMP:PlayerRank").gameObject);
         }
 
         private static string s_uId { get; set; }
@@ -63,14 +63,13 @@ namespace FewTags
             if (s_user == null) return;
             for (int i = 0; i < s_user.NamePlatesText.Length; i++)
                 GeneratePlate(s_uId, s_user.NamePlatesText[i], i,new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
-            GameObject.Destroy(s_namePlate.transform.Find("TMP:PlayerRank").gameObject);
         }
-
-        //GameObject.Destroy(s_temporaryNamePlate.transform.Find("TMP:PlayerRank").gameObject);
 
         private static void GeneratePlate(string uid,string plateText, int multiplier,Color32 color)
         {
             s_temporaryNamePlate = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
+            s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").GetComponent<RectTransform>().gameObject;
+            s_dev.transform.gameObject.active = false;
             s_temporaryNamePlate.transform.localPosition = new Vector3(0,-0.15f - (multiplier) * 0.075f, 0);
             s_temporaryNamePlate.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = color;
             GameObject.Destroy(s_temporaryNamePlate.transform.Find("Image/FriendsIndicator").gameObject);
