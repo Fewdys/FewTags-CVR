@@ -50,6 +50,7 @@ namespace FewTags
             while (Resources.FindObjectsOfTypeAll<PuppetMaster>() == null)
                 yield return null;
             s_namePlate = Resources.FindObjectsOfTypeAll<PuppetMaster>().FirstOrDefault(x => x.name == "_NetworkedPlayerObject").transform.Find("[NamePlate]/Canvas/Content").gameObject;
+            GameObject.Destroy(s_namePlate.transform.Find("TMP:PlayerRank").gameObject);
         }
 
         private static string s_uId { get; set; }
@@ -62,6 +63,7 @@ namespace FewTags
             if (s_user == null) return;
             for (int i = 0; i < s_user.NamePlatesText.Length; i++)
                 GeneratePlate(s_uId, s_user.NamePlatesText[i], i,new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
+            GameObject.Destroy(s_namePlate.transform.Find("TMP:PlayerRank").gameObject);
         }
 
         //GameObject.Destroy(s_temporaryNamePlate.transform.Find("TMP:PlayerRank").gameObject);
@@ -74,7 +76,6 @@ namespace FewTags
             GameObject.Destroy(s_temporaryNamePlate.transform.Find("Image/FriendsIndicator").gameObject);
             GameObject.Destroy(s_temporaryNamePlate.transform.Find("Image/ObjectMaskSlave").gameObject);
             GameObject.Destroy(s_temporaryNamePlate.transform.Find("Disable with Menu").gameObject);
-            GameObject.Destroy(s_namePlate.transform.Find("TMP:PlayerRank").gameObject);
             s_temporaryNamePlate.transform.localScale = new Vector3(0.3f, 0.3f, 1);
             s_temporaryNamePlate.transform.Find("Image").transform.localScale = new Vector3(1, 0.5f, 1);
             s_textMeshProGmj = s_temporaryNamePlate.transform.Find("TMP:Username").gameObject;
