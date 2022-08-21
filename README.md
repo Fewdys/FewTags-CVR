@@ -7,4 +7,4 @@ Tags/Ranks Mod For Marking Malicious Users/Monkey's, Client Users, Wholesome Use
 - Make Animated Tags
 
 [Discord Link](discord.gg/EN4RrZR)
-###### I do not affiliate with ABI (ChilloutVR) and the mod is not supported by ABI (ChilloutVR).
+###### I do not affiliate with ABI and the mod is not supported by ABI.
