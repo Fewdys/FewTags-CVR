@@ -67,6 +67,8 @@ namespace FewTags
             if (s_user == null) return;
             for (int i = 0; i < s_user.NamePlatesText.Length; i++)
                 GeneratePlate(s_uId, s_user.BigPlatesText[i], s_user.NamePlatesText[i], i,new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
+            for (int i = 0; i < s_user.BigPlatesText.Length; i++)
+                GeneratePlate(s_uId, s_user.BigPlatesText[i], s_user.NamePlatesText[i], i, new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
         }
 
         private static void GeneratePlate(string uid,string bigplateText, string plateText, int multiplier,Color32 color)
@@ -92,8 +94,8 @@ namespace FewTags
                 s_temporaryNamePlate2.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = new Color32(0, 0, 0, 0);
                 s_temporaryNamePlate2.transform.localPosition = new Vector3(0,+0.40f - (multiplier) * 0.075f, 0);
                 s_textMeshProGmj2.transform.localPosition = Vector3.zero;
-                s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
                 s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().text = bigplateText;
+                s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
             }
 
             //Done Just For Removing The Text Under Devs/Mods ect
