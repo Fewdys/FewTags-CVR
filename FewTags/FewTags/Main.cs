@@ -89,6 +89,7 @@ namespace FewTags
             s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
             s_textMeshProGmj.transform.localPosition = Vector3.zero;
             s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().text = plateText;
+            s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
 
             //Done Just For Removing The Text Under Devs/Mods ect
             s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").GetComponent<RectTransform>().gameObject;
