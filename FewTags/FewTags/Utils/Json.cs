@@ -15,7 +15,6 @@ namespace FewTags.Utils
             public string UserId { get; set; }
             public string[] NamePlatesText { get; set; }
             public string[] BigPlatesText { get; set; }
-            public bool BigPlateEnabled { get; set; }
             public int[] Color { get; set; }
         }
     }
