@@ -104,7 +104,7 @@ namespace FewTags
         private static void GenerateBigPlate(string uid, string plateText, int multiplier)
         {
             s_BigPlateHolder = GameObject.Instantiate(s_BigNamePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
-            s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, +0.76f - (multiplier) * 0.3f, 0) : new Vector3(0, +0.45f - (multiplier) * 0.3f, 0);
+            s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, +0.758f - (multiplier) * 0.3f, 0) : new Vector3(0, +0.45f - (multiplier) * 0.3f, 0);
             s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = new Color(0f, 0f, 0f, 0f);
             GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
             GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
