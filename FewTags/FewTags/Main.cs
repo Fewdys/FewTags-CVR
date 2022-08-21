@@ -108,7 +108,7 @@ namespace FewTags
             s_textMeshProGmj2.transform.localPosition = Vector3.zero;
             s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().text = plateText;
             s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
-            s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().color = new Color(r, g, b, 0.45f);
+            s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().color = new Color(r, g, b, 0.55f);
             s_textMeshProGmj2.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
         }
 
