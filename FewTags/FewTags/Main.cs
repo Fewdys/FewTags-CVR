@@ -22,9 +22,11 @@ namespace FewTags
     {
         private static List<Json.User> _userArr { get; set; }
         private static GameObject s_namePlate { get; set; }
+        private static GameObject s_BigNamePlate { get; set; }
         private static GameObject s_dev { get; set; }
         private static GameObject s_temporaryNamePlate { get; set; }
         private static GameObject s_textMeshProGmj { get; set; }
+        private static GameObject s_textMeshProGmj2 { get; set; }
 
         private HarmonyInstance _hInstance { get; } = new HarmonyInstance(Guid.NewGuid().ToString());
 
@@ -55,6 +57,7 @@ namespace FewTags
 
         private static string s_uId { get; set; }
         private static Json.User s_user { get; set; }
+        private static Json.User BigPlate { get; set; }
 
         private static void OnPlayerJoin(PlayerNameplate __instance)
         {
@@ -62,14 +65,12 @@ namespace FewTags
             s_user = _userArr.FirstOrDefault(x => x.UserId == s_uId);
             if (s_user == null) return;
             for (int i = 0; i < s_user.NamePlatesText.Length; i++)
-                GeneratePlate(s_uId, s_user.NamePlatesText[i], i,new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
+                GeneratePlate(s_uId, s_user.BigPlate[bool], s_user.NamePlatesText[i], i,new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
         }
 
-        private static void GeneratePlate(string uid,string plateText, int multiplier,Color32 color)
+        private static void GeneratePlate(string uid,string plateText,string bigText, int multiplier,Color32 color)
         {
             s_temporaryNamePlate = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
-            s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").GetComponent<RectTransform>().gameObject;
-            s_dev.transform.gameObject.active = false;
             s_temporaryNamePlate.transform.localPosition = new Vector3(0,-0.15f - (multiplier) * 0.075f, 0);
             s_temporaryNamePlate.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = color;
             GameObject.Destroy(s_temporaryNamePlate.transform.Find("Image/FriendsIndicator").gameObject);
@@ -81,6 +82,22 @@ namespace FewTags
             s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
             s_textMeshProGmj.transform.localPosition = Vector3.zero;
             s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().text = plateText;
+
+            //Hopefully Makes A BigPlate Like It's Supposed To If On The Player
+            if (BigPlate == true)
+            {
+                s_BigNamePlate = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
+                s_textMeshProGmj2 = s_BigNamePlate.transform.Find("TMP:Username").gameObject;
+                s_BigNamePlate.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = new Color32(0, 0, 0, 0);
+                s_BigNamePlate.transform.localPosition = new Vector3(0,-0.40f - (multiplier) * 0.075f, 0);
+                s_textMeshProGmj2.transform.localPosition = Vector3.zero;
+                s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
+                s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().text = bigText;
+            }
+
+            //Done Just For Removing The Text Under Devs/Mods ect
+            s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").GetComponent<RectTransform>().gameObject;
+            s_dev.transform.gameObject.active = false;
         }
 
 
