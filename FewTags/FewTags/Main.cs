@@ -40,16 +40,6 @@ namespace FewTags
         public override void OnApplicationStart()
         {
             NocturnalTagsLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "Nocturnal Plates");
-
-            /*   List<Json.User> lista = new List<Json.User>();
-               lista.Add(new Json.User()
-               {
-                   id = 0,
-                   NamePlatesText = new string[] { "Nothing" },
-                   UserId = "0000"
-               });
-
-               File.WriteAllText(Directory.GetCurrentDirectory() + "//Jsonuuuuuuu.text", JsonConvert.SerializeObject(lista));*/
             MelonLogger.Msg("Initializing.");
             DownloadString();
             _hInstance.Patch(typeof(PlayerNameplate).GetMethod(nameof(PlayerNameplate.UpdateNamePlate)), null, typeof(Main).GetMethod(nameof(OnPlayerJoin),System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).ToNewHarmonyMethod());
@@ -117,7 +107,7 @@ namespace FewTags
             s_textMeshProGmj2.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
         }
 
-            private static void DownloadString()
+        private static void DownloadString()
         {
             using (WebClient wc = new WebClient())
                 _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json")); MelonLogger.Msg(_userArr.FirstOrDefault().Color[1]);
