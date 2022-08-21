@@ -20,6 +20,8 @@ namespace FewTags
 {
     public class Main : MelonMod
     {
+        public static bool NocturnalTagsLoaded { get; private set; }
+
         private static float b;
         private static float g;
         private static float r;
@@ -37,6 +39,8 @@ namespace FewTags
 
         public override void OnApplicationStart()
         {
+            NocturnalTagsLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "Nocturnal Plates");
+
             /*   List<Json.User> lista = new List<Json.User>();
                lista.Add(new Json.User()
                {
@@ -78,7 +82,7 @@ namespace FewTags
         private static void GeneratePlate(string uid, string plateText, int multiplier,Color32 color)
         {
             s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
-            s_MainPlateHolder.transform.localPosition = new Vector3(0,-0.15f - (multiplier) * 0.075f, 0);
+            s_MainPlateHolder.transform.localPosition = new Vector3(0,-0.155f - (multiplier) * 0.0778f, 0);
             s_MainPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = color;
             GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
             GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
@@ -100,7 +104,7 @@ namespace FewTags
         private static void GenerateBigPlate(string uid, string plateText, int multiplier)
         {
             s_BigPlateHolder = GameObject.Instantiate(s_BigNamePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
-            s_BigPlateHolder.transform.localPosition = new Vector3(0, +0.43f - (multiplier) * 0.075f, 0);
+            s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, +0.64f - (multiplier) * 0.3f, 0) : new Vector3(0, +0.45f - (multiplier) * 0.3f, 0);
             s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = new Color(0f, 0f, 0f, 0f);
             GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
             GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
