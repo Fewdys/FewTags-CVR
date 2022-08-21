@@ -59,7 +59,6 @@ namespace FewTags
 
         private static string s_uId { get; set; }
         private static Json.User s_user { get; set; }
-        private static Json.User User { get; set; }
 
         private static void OnPlayerJoin(PlayerNameplate __instance)
         {
@@ -86,7 +85,7 @@ namespace FewTags
             s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().text = plateText;
 
             //Hopefully Makes A BigPlate Like It's Supposed To If On The Player
-            if (User.BigPlateEnabled == true)
+            if (s_user.BigPlateEnabled == true)
             {
                 s_temporaryNamePlate2 = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
                 s_textMeshProGmj2 = s_BigNamePlate.transform.Find("TMP:Username").gameObject;
