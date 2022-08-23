@@ -41,6 +41,7 @@ namespace FewTags
         {
             NocturnalTagsLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "Nocturnal Plates");
             MelonLogger.Msg("Initializing.");
+            MelonLogger.Msg("FewTags Loaded. Press Slash To Reload Tags");
             DownloadString();
             _hInstance.Patch(typeof(PlayerNameplate).GetMethod(nameof(PlayerNameplate.UpdateNamePlate)), null, typeof(Main).GetMethod(nameof(OnPlayerJoin),System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).ToNewHarmonyMethod());
             MelonCoroutines.Start(WaitForNamePlate());
@@ -53,6 +54,21 @@ namespace FewTags
                 yield return null;
             s_namePlate = Resources.FindObjectsOfTypeAll<PuppetMaster>().FirstOrDefault(x => x.name == "_NetworkedPlayerObject").transform.Find("[NamePlate]/Canvas/Content").gameObject;
             s_BigNamePlate = Resources.FindObjectsOfTypeAll<PuppetMaster>().FirstOrDefault(x => x.name == "_NetworkedPlayerObject").transform.Find("[NamePlate]/Canvas/Content").gameObject;
+        }
+
+        public override void OnUpdate()
+        {
+            if (Input.GetKeyDown(KeyCode.Slash))
+            {
+                ReloadString();
+                MelonLogger.Msg("Reloaded Tags, Please Rejoin World.");
+            }
+        }
+
+        private void ReloadString()
+        {
+            _userArr.Clear();
+            DownloadString();
         }
 
         private static string s_uId { get; set; }
