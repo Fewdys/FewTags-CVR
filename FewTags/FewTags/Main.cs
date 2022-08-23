@@ -115,7 +115,7 @@ namespace FewTags
                 if (!char.IsDigit(splited[1][i])) break;
                 sizeString += splited[1][i];
             }
-            s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, 0.758f + (int.Parse(sizeString)) * 0.02f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.008f, 0);
+            s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, 0.758f + (int.Parse(sizeString)) * 0.0075f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0035f, 0);
             Component.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
             GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
             GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
