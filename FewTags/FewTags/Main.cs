@@ -28,7 +28,6 @@ namespace FewTags
 
         private static List<Json.User> _userArr { get; set; }
         private static GameObject s_namePlate { get; set; }
-        private static GameObject s_BigNamePlate { get; set; }
         private static GameObject s_dev { get; set; }
         private static GameObject s_MainPlateHolder { get; set; }
         private static GameObject s_BigPlateHolder { get; set; }
@@ -53,7 +52,6 @@ namespace FewTags
             while (Resources.FindObjectsOfTypeAll<PuppetMaster>() == null)
                 yield return null;
             s_namePlate = Resources.FindObjectsOfTypeAll<PuppetMaster>().FirstOrDefault(x => x.name == "_NetworkedPlayerObject").transform.Find("[NamePlate]/Canvas/Content").gameObject;
-            s_BigNamePlate = Resources.FindObjectsOfTypeAll<PuppetMaster>().FirstOrDefault(x => x.name == "_NetworkedPlayerObject").transform.Find("[NamePlate]/Canvas/Content").gameObject;
         }
 
         public override void OnUpdate()
@@ -109,9 +107,16 @@ namespace FewTags
         //Just Gonna Duplicate It For Big Text Because Im Lazy Asf
         private static void GenerateBigPlate(string uid, string plateText, int multiplier)
         {
-            s_BigPlateHolder = GameObject.Instantiate(s_BigNamePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
-            s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, +0.758f - (multiplier) * 0.3f, 0) : new Vector3(0, +0.45f - (multiplier) * 0.3f, 0);
-            s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = new Color(0f, 0f, 0f, 0f);
+            s_BigPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
+            string[] splited = plateText.Split(new string[] { "<size=" }, StringSplitOptions.None);
+            string sizeString = string.Empty;
+            for (int i = 0; i < splited[1].Length; i++)
+            {
+                if (!char.IsDigit(splited[1][i])) break;
+                sizeString += splited[1][i];
+            }
+            s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, 0.758f + (int.Parse(sizeString)) * 0.02f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.008f, 0);
+            Component.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
             GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
             GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
             GameObject.Destroy(s_BigPlateHolder.transform.Find("Disable with Menu").gameObject);
