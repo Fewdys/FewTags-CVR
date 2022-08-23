@@ -14,7 +14,7 @@ using MelonLoader;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: MelonInfo(typeof(FewTags.Main), "FewTags", "1.0.2", "Fewdy")]
+[assembly: MelonInfo(typeof(FewTags.Main), "FewTags", "1.0.3", "Fewdy")]
 [assembly: MelonColor(System.ConsoleColor.Cyan)]
 [assembly: MelonGame("Alpha Blend Interactive", "ChilloutVR")]
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -35,5 +35,5 @@ using MelonLoader;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.2.0")]
-[assembly: AssemblyFileVersion("1.0.2.0")]
+[assembly: AssemblyVersion("1.0.3.0")]
+[assembly: AssemblyFileVersion("1.0.3.0")]
