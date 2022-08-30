@@ -9,10 +9,12 @@ using System.IO;
 using FewTags.Utils;
 using System.Net;
 using ABI_RC.Core.Player;
+using ABI_RC.Core.UI;
 using ABI_RC.Core;
 using Harmony;
 using UnityEngine;
 using System.Collections;
+using ABI_RC.Core.Base.Jobs;
 
 //Thanks To Edward7 For The Original Base
 
@@ -33,6 +35,8 @@ namespace FewTags
         private static GameObject s_BigPlateHolder { get; set; }
         private static GameObject s_textMeshProGmj { get; set; }
         private static GameObject s_textMeshProGmj2 { get; set; }
+        private static Transform s_plateTransform { get; set; }
+        private static TMPro.TextMeshProUGUI s_Logo { get; set; }
 
         private HarmonyInstance _hInstance { get; } = new HarmonyInstance(Guid.NewGuid().ToString());
 
@@ -60,6 +64,7 @@ namespace FewTags
             {
                 ReloadString();
                 MelonLogger.Msg("Reloaded Tags, Please Rejoin World.");
+                CohtmlHud.Instance.ViewDropText("FewTags", "Connected", "Connected To FewTags");
             }
         }
 
@@ -81,51 +86,74 @@ namespace FewTags
                 GeneratePlate(s_uId, s_user.NamePlatesText[i], i, new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
             for (int i = 0; i < s_user.BigPlatesText.Length; i++)
                 GenerateBigPlate(s_uId, s_user.BigPlatesText[i], i);
+            CreateLogo(s_uId);
         }
 
         private static void GeneratePlate(string uid, string plateText, int multiplier,Color32 color)
         {
-            s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
-            s_MainPlateHolder.transform.localPosition = new Vector3(0,-0.155f - (multiplier) * 0.0778f, 0);
-            s_MainPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = color;
-            GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
-            GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
-            GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
-            s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
-            s_MainPlateHolder.transform.Find("Image").transform.localScale = new Vector3(1, 0.5f, 1);
-            s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
-            s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
-            s_textMeshProGmj.transform.localPosition = Vector3.zero;
-            s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().text = plateText;
-            s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
+            try
+            {
+                s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
+                s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.155f - (multiplier) * 0.0778f, 0);
+                s_MainPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = color;
+                GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
+                GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
+                GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
+                s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
+                s_MainPlateHolder.transform.Find("Image").transform.localScale = new Vector3(1, 0.5f, 1);
+                s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
+                s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
+                s_textMeshProGmj.transform.localPosition = Vector3.zero;
+                s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().text = plateText;
+                s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
 
-            //Done Just For Removing The Text Under Devs/Mods ect
-            s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").GetComponent<RectTransform>().gameObject;
-            s_dev.transform.gameObject.SetActive(false);
+                //Done Just For Removing The Text Under Devs/Mods ect
+                s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
+                s_dev.transform.gameObject.SetActive(false);
+            }
+            catch { }
         }
 
         //Just Gonna Duplicate It For Big Text Because Im Lazy Asf
         private static void GenerateBigPlate(string uid, string plateText, int multiplier)
         {
-            s_BigPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
-            string[] splited = plateText.Split(new string[] { "<size=" }, StringSplitOptions.None);
-            string sizeString = string.Empty;
-            for (int i = 0; i < splited[1].Length; i++)
+            try
             {
-                if (!char.IsDigit(splited[1][i])) break;
-                sizeString += splited[1][i];
+                s_BigPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
+                string[] splited = plateText.Split(new string[] { "<size=" }, StringSplitOptions.None);
+                string sizeString = string.Empty;
+                for (int i = 0; i < splited[1].Length; i++)
+                {
+                    if (!char.IsDigit(splited[1][i])) break;
+                    sizeString += splited[1][i];
+                }
+                s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, 0.758f + (int.Parse(sizeString)) * 0.0075f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0035f, 0);
+                GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject);
+                GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
+                GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
+                GameObject.Destroy(s_BigPlateHolder.transform.Find("Disable with Menu").gameObject);
+                s_textMeshProGmj2 = s_BigPlateHolder.transform.Find("TMP:Username").gameObject;
+                s_textMeshProGmj2.transform.localPosition = Vector3.zero;
+                s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().text = plateText;
+                s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
+                s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().color = new Color(r, g, b, 0.55f);
+                s_textMeshProGmj2.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
             }
-            s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, 0.758f + (int.Parse(sizeString)) * 0.0075f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0035f, 0);
-            Component.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
-            GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
-            GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
-            GameObject.Destroy(s_BigPlateHolder.transform.Find("Disable with Menu").gameObject);
-            s_textMeshProGmj2 = s_BigPlateHolder.transform.Find("TMP:Username").gameObject;
-            s_textMeshProGmj2.transform.localPosition = Vector3.zero;
-            s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().text = plateText;
-            s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
-            s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().color = new Color(r, g, b, 0.55f);
-            s_textMeshProGmj2.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
+            catch { }
+        }
+
+        public static void CreateLogo(string uid)
+        {
+            s_plateTransform = GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform;
+            s_Logo = GameObject.Instantiate(s_plateTransform.transform.Find("Content/TMP:Username").gameObject, s_plateTransform.transform.Find("Content").transform).gameObject.GetComponent<TMPro.TextMeshProUGUI>();
+            s_Logo.text = "<b><i><color=#00FFFF>FT</color>";
+            s_Logo.outlineWidth = 0.23f;
+            s_Logo.outlineColor = new Color32(0, 0, 0, 255);
+            s_Logo.autoSizeTextContainer = true;
+            s_Logo.enableAutoSizing = false;
+            s_Logo.fontSize = 0.19f;
+            s_Logo.transform.localPosition = new Vector3(-1.35f, -0.45f);
+            GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform.localScale = new Vector3(0.45f, 0.45f, 1);
         }
 
         private static void DownloadString()
