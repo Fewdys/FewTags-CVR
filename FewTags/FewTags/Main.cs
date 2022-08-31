@@ -93,9 +93,9 @@ namespace FewTags
 
         private static void GeneratePlate(string uid, string plateText, int multiplier,Color32 color)
         {
-            //MelonLogger.Msg("---PlateText Length---");
-            //MelonLogger.Msg(plateText);
-            //MelonLogger.Msg(plateText.Length);
+            MelonLogger.Msg("---PlateText Length---");
+            MelonLogger.Msg(plateText);
+            MelonLogger.Msg(plateText.Length);
 
             try
             {
@@ -106,55 +106,59 @@ namespace FewTags
                 {
                     //weeeeeeeeeeeeeeeeeeeeeeeeeee idk any other way of doing this lmaoo
                     number1++;
-                    if (s.Length < number1)
-                    {
-                        length = s.Length;
-                    }
                     if (s.Length == 13)
                     {
                         length = s.Length;
                     }
-                    if (s.Length == 8)
+                    else if (s.Length == 8)
                     {
                         length = s.Length;
                     }
-                    if (plateText.Length > number1)
+                    else if (plateText.Length > number1)
                     {
                         length = plateText.Length / 20;
                     }
-                    if (plateText.Length > 125)
+                    else if (plateText.Length > 125)
                     {
                         length = plateText.Length / 7;
                     }
-                    if (plateText.Length > 255)
+                    else if (plateText.Length > 255)
                     {
                         length = plateText.Length / 20;
                     }
-                    if (plateText.Length == 225)
+                    else if (plateText.Length == 225)
                     {
                         length = plateText.Length/ 20;
                     }
-                    if (plateText.Length == 344)
+                    else if (plateText.Length == 344)
                     {
                         length = plateText.Length / 20;
                     }
-                    if (plateText.Length > 344)
+                    else if (plateText.Length < 345)
                     {
                         length = plateText.Length / 20;
                     }
-                    if (plateText.Length == 52)
+                    else if (plateText.Length > 445)
+                    {
+                        length = plateText.Length / 10;
+                    }
+                    else if (plateText.Length > 330)
+                    {
+                        length = plateText.Length / 8;
+                    }
+                    else if (plateText.Length == 52)
                     {
                         length = plateText.Length / 3;
                     }
-                    if (plateText.Length > 600)
+                    else if (plateText.Length > 600)
                     {
-                        length = plateText.Length / 30;
+                        length = plateText.Length / 8;
                     }
-                    if (plateText.Length < 52)
+                    else if (plateText.Length < 52)
                     {
                         length = plateText.Length / 3;
                     }
-                    if (plateText.Length < 16)
+                    else if (plateText.Length < 16)
                     {
                         length = plateText.Length;
                     }
@@ -168,10 +172,10 @@ namespace FewTags
                     GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
                 }
 
-            //MelonLogger.Msg("---s.Lengths---");
-            //MelonLogger.Msg(s.Length);
-            //MelonLogger.Msg("---Splitted Lengths---");
-            //MelonLogger.Msg(splitted.Length);
+            MelonLogger.Msg("---s.Lengths---");
+            MelonLogger.Msg(s.Length);
+            MelonLogger.Msg("---Splitted Lengths---");
+            MelonLogger.Msg(splitted.Length);
                 
                 }
                 s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
