@@ -122,7 +122,11 @@ namespace FewTags
                     {
                         length = plateText.Length / 20;
                     }
-                    if (plateText.Length == 255)
+                    if (plateText.Length > 125)
+                    {
+                        length = plateText.Length / 7;
+                    }
+                    if (plateText.Length > 255)
                     {
                         length = plateText.Length / 20;
                     }
@@ -131,6 +135,10 @@ namespace FewTags
                         length = plateText.Length/ 20;
                     }
                     if (plateText.Length == 344)
+                    {
+                        length = plateText.Length / 20;
+                    }
+                    if (plateText.Length > 344)
                     {
                         length = plateText.Length / 20;
                     }
