@@ -15,6 +15,7 @@ using Harmony;
 using UnityEngine;
 using System.Collections;
 using ABI_RC.Core.Base.Jobs;
+using UnityEngine.UI;
 
 //Thanks To Edward7 For The Original Base
 
@@ -24,6 +25,7 @@ namespace FewTags
     {
         public static bool NocturnalTagsLoaded { get; private set; }
 
+        private static float a;
         private static float b;
         private static float g;
         private static float r;
@@ -91,8 +93,79 @@ namespace FewTags
 
         private static void GeneratePlate(string uid, string plateText, int multiplier,Color32 color)
         {
+            //MelonLogger.Msg("---PlateText Length---");
+            //MelonLogger.Msg(plateText);
+            //MelonLogger.Msg(plateText.Length);
+
             try
             {
+            int number1 = 5;
+            int length = 0;
+            string[] splitted = plateText.Split(new string[] { "<color=" }, StringSplitOptions.None);
+            foreach (string s in splitted)
+                {
+                    //weeeeeeeeeeeeeeeeeeeeeeeeeee idk any other way of doing this lmaoo
+                    number1++;
+                    if (s.Length < number1)
+                    {
+                        length = s.Length;
+                    }
+                    if (s.Length == 13)
+                    {
+                        length = s.Length;
+                    }
+                    if (s.Length == 8)
+                    {
+                        length = s.Length;
+                    }
+                    if (plateText.Length > number1)
+                    {
+                        length = plateText.Length / 20;
+                    }
+                    if (plateText.Length == 255)
+                    {
+                        length = plateText.Length / 20;
+                    }
+                    if (plateText.Length == 225)
+                    {
+                        length = plateText.Length/ 20;
+                    }
+                    if (plateText.Length == 344)
+                    {
+                        length = plateText.Length / 20;
+                    }
+                    if (plateText.Length == 52)
+                    {
+                        length = plateText.Length / 3;
+                    }
+                    if (plateText.Length > 600)
+                    {
+                        length = plateText.Length / 20;
+                    }
+                    if (plateText.Length < 52)
+                    {
+                        length = plateText.Length / 3;
+                    }
+                    if (plateText.Length < 16)
+                    {
+                        length = plateText.Length;
+                    }
+                
+                else if (plateText.Length == 1000)
+                {
+                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
+                }
+                else if (plateText.Length > 1000)
+                {
+                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
+                }
+
+            //MelonLogger.Msg("---s.Lengths---");
+            //MelonLogger.Msg(s.Length);
+            //MelonLogger.Msg("---Splitted Lengths---");
+            //MelonLogger.Msg(splitted.Length);
+                
+                }
                 s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
                 s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.155f - (multiplier) * 0.0778f, 0);
                 s_MainPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = color;
@@ -100,12 +173,15 @@ namespace FewTags
                 GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
                 GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
                 s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
-                s_MainPlateHolder.transform.Find("Image").transform.localScale = new Vector3(1, 0.5f, 1);
+                s_MainPlateHolder.transform.Find("Image").transform.localScale = length == 1 ? new Vector3(1, 0.5f, 1) : new Vector3(length * 0.069f, 0.5f, 1);
                 s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
                 s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
                 s_textMeshProGmj.transform.localPosition = Vector3.zero;
                 s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().text = plateText;
+                s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().alignment = TMPro.TextAlignmentOptions.Center;
                 s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
+                s_textMeshProGmj.gameObject.GetComponent<UnityEngine.RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
+
 
                 //Done Just For Removing The Text Under Devs/Mods ect
                 s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
@@ -159,7 +235,7 @@ namespace FewTags
         private static void DownloadString()
         {
             using (WebClient wc = new WebClient())
-                _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json")); MelonLogger.Msg(_userArr.FirstOrDefault().Color[1]);
+                _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json")); MelonLogger.Msg($"ID: {_userArr.FirstOrDefault().Color[1]}");
         }
 
 
