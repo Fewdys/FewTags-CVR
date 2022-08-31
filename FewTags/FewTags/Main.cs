@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MelonLoader;
 using Newtonsoft.Json;
@@ -91,101 +92,28 @@ namespace FewTags
             CreateLogo(s_uId);
         }
 
+        private static float s_textCount { get; set; }
+        private static GameObject s_imageHolder { get; set; }
+
         private static void GeneratePlate(string uid, string plateText, int multiplier,Color32 color)
         {
-            MelonLogger.Msg("---PlateText Length---");
-            MelonLogger.Msg(plateText);
+            //MelonLogger.Msg("---PlateText---");
+            //MelonLogger.Msg(plateText);
+            //MelonLogger.Msg("---PlateText Length---");
             MelonLogger.Msg(plateText.Length);
-
             try
             {
-            int number1 = 5;
-            int length = 0;
-            string[] splitted = plateText.Split(new string[] { "<color=" }, StringSplitOptions.None);
-            foreach (string s in splitted)
-                {
-                    //weeeeeeeeeeeeeeeeeeeeeeeeeee idk any other way of doing this lmaoo
-                    number1++;
-                    if (s.Length == 13)
-                    {
-                        length = s.Length;
-                    }
-                    else if (s.Length == 8)
-                    {
-                        length = s.Length;
-                    }
-                    else if (plateText.Length > number1)
-                    {
-                        length = plateText.Length / 20;
-                    }
-                    else if (plateText.Length > 125)
-                    {
-                        length = plateText.Length / 7;
-                    }
-                    else if (plateText.Length > 255)
-                    {
-                        length = plateText.Length / 20;
-                    }
-                    else if (plateText.Length == 225)
-                    {
-                        length = plateText.Length/ 20;
-                    }
-                    else if (plateText.Length == 344)
-                    {
-                        length = plateText.Length / 20;
-                    }
-                    else if (plateText.Length < 345)
-                    {
-                        length = plateText.Length / 20;
-                    }
-                    else if (plateText.Length > 445)
-                    {
-                        length = plateText.Length / 10;
-                    }
-                    else if (plateText.Length > 330)
-                    {
-                        length = plateText.Length / 8;
-                    }
-                    else if (plateText.Length == 52)
-                    {
-                        length = plateText.Length / 3;
-                    }
-                    else if (plateText.Length > 600)
-                    {
-                        length = plateText.Length / 8;
-                    }
-                    else if (plateText.Length < 52)
-                    {
-                        length = plateText.Length / 3;
-                    }
-                    else if (plateText.Length < 16)
-                    {
-                        length = plateText.Length;
-                    }
-                
-                else if (plateText.Length == 1000)
-                {
-                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
-                }
-                else if (plateText.Length > 1000)
-                {
-                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
-                }
-
-            MelonLogger.Msg("---s.Lengths---");
-            MelonLogger.Msg(s.Length);
-            MelonLogger.Msg("---Splitted Lengths---");
-            MelonLogger.Msg(splitted.Length);
-                
-                }
+                s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 8 : -15) : plateText.Length;
                 s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
                 s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.155f - (multiplier) * 0.0778f, 0);
-                s_MainPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>().color = color;
+                s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
+                s_imageHolder.GetComponent<UnityEngine.UI.Image>().color = color;
                 GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
                 GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
                 GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
                 s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
-                s_MainPlateHolder.transform.Find("Image").transform.localScale = length == 1 ? new Vector3(1, 0.5f, 1) : new Vector3(length * 0.069f, 0.5f, 1);
+                s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
+                s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 15, 0.5f);
                 s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
                 s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
                 s_textMeshProGmj.transform.localPosition = Vector3.zero;
@@ -230,6 +158,7 @@ namespace FewTags
             catch { }
         }
 
+        //At Some Point Will Make This Show Up For Each Person Running The Mod If I Figure Out How To Since I Don't Have A Server
         public static void CreateLogo(string uid)
         {
             s_plateTransform = GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform;
