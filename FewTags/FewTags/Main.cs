@@ -243,7 +243,7 @@ namespace FewTags
         private static void DownloadString()
         {
             using (WebClient wc = new WebClient())
-                _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json")); MelonLogger.Msg($"ID: {_userArr.FirstOrDefault().Color[1]}");
+                _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json"));
         }
 
 
