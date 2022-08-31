@@ -148,7 +148,7 @@ namespace FewTags
                     }
                     if (plateText.Length > 600)
                     {
-                        length = plateText.Length / 20;
+                        length = plateText.Length / 30;
                     }
                     if (plateText.Length < 52)
                     {
