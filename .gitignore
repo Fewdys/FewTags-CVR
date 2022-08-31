@@ -11,4 +11,4 @@
 *.sqlite-journal
 /.vs/ProjectSettings.json
 /.vs/VSWorkspaceState.json
-*.cs
+/FewTags/FewTags/Main Old.cs
