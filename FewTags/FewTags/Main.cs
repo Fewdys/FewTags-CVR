@@ -89,7 +89,7 @@ namespace FewTags
                 GeneratePlate(s_uId, s_user.NamePlatesText[i], i, new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
             for (int i = 0; i < s_user.BigPlatesText.Length; i++)
                 GenerateBigPlate(s_uId, s_user.BigPlatesText[i], i);
-            CreateLogo(s_uId);
+            //CreateLogo(s_uId);
         }
 
         private static float s_textCount { get; set; }
@@ -100,10 +100,10 @@ namespace FewTags
             //MelonLogger.Msg("---PlateText---");
             //MelonLogger.Msg(plateText);
             //MelonLogger.Msg("---PlateText Length---");
-            MelonLogger.Msg(plateText.Length);
+            //MelonLogger.Msg(plateText.Length);
             try
             {
-                s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 8 : -15) : plateText.Length;
+                s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 7 : -9) : plateText.Length;
                 s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
                 s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.155f - (multiplier) * 0.0778f, 0);
                 s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
@@ -113,7 +113,7 @@ namespace FewTags
                 GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
                 s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
                 s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
-                s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 15, 0.5f);
+                s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 11, 0.5f);
                 s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
                 s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
                 s_textMeshProGmj.transform.localPosition = Vector3.zero;
