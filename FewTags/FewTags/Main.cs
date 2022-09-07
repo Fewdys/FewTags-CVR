@@ -103,7 +103,7 @@ namespace FewTags
             //MelonLogger.Msg(plateText.Length);
             try
             {
-                s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 7 : -9) : plateText.Length;
+                s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 3 : 20) : plateText.Length;
                 s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
                 s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.155f - (multiplier) * 0.0778f, 0);
                 s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
@@ -113,7 +113,7 @@ namespace FewTags
                 GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
                 s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
                 s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
-                s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 11, 0.5f);
+                s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 10, 0.5f);
                 s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
                 s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
                 s_textMeshProGmj.transform.localPosition = Vector3.zero;
