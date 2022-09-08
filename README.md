@@ -7,5 +7,5 @@ Tags/Ranks Mod For Marking Malicious Users/Monkey's, Client Users, Wholesome Use
 - Make It Possible To See Your Own Tags/Nameplate
 - Make Animated Tags
 
-[Discord Link](discord.gg/EN4RrZR)
+[Discord Link](https://discord.gg/EN4RrZR)
 ###### I do not affiliate with ABI and the mod is not supported by ABI.
