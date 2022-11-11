@@ -11,4 +11,7 @@
 *.sqlite-journal
 /.vs/ProjectSettings.json
 /.vs/VSWorkspaceState.json
+/.vs/FewTags-CVR
 /FewTags/FewTags/Main Old.cs
+/FewTags/.vs/FewTags/FileContentIndex
+/FewTags/.vs/FewTags/FileContentIndex/9dc6fe61-c5d1-46d0-b06b-6eff8f33da2a.vsidx
