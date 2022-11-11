@@ -17,7 +17,6 @@ using UnityEngine;
 using System.Collections;
 using ABI_RC.Core.Base.Jobs;
 using UnityEngine.UI;
-using JetBrains.Annotations;
 
 //Thanks To Edward7 For The Original Base
 
