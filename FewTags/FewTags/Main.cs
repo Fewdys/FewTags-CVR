@@ -17,6 +17,7 @@ using UnityEngine;
 using System.Collections;
 using ABI_RC.Core.Base.Jobs;
 using UnityEngine.UI;
+using JetBrains.Annotations;
 
 //Thanks To Edward7 For The Original Base
 
@@ -61,16 +62,18 @@ namespace FewTags
             s_namePlate = Resources.FindObjectsOfTypeAll<PuppetMaster>().FirstOrDefault(x => x.name == "_NetworkedPlayerObject").transform.Find("[NamePlate]/Canvas/Content").gameObject;
         }
 
+        //Keybind To Update The Tags (Prevents The Need Of Needing To Restart You're Game)
         public override void OnUpdate()
         {
             if (Input.GetKeyDown(KeyCode.Slash))
             {
                 ReloadString();
-                MelonLogger.Msg("Reloaded Tags, Please Rejoin World.");
+                MelonLogger.Msg("Reloaded Tags, Please Rejoin World If Needed.");
                 CohtmlHud.Instance.ViewDropText("FewTags", "Connected", "Connected To FewTags");
             }
         }
 
+        //Used For The Keybind To Update Tags
         private void ReloadString()
         {
             _userArr.Clear();
@@ -87,9 +90,10 @@ namespace FewTags
             if (s_user == null) return;
             for (int i = 0; i < s_user.NamePlatesText.Length; i++)
                 GeneratePlate(s_uId, s_user.NamePlatesText[i], i, new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
+            //The Two Lines Below This Were Done Because Of Laziness Of Typing Some Stuff As You Can See Noted Before GenerateBigPlate
             for (int i = 0; i < s_user.BigPlatesText.Length; i++)
                 GenerateBigPlate(s_uId, s_user.BigPlatesText[i], i);
-            //CreateLogo(s_uId);
+            /*CreateLogo(s_uId);*/
         }
 
         private static float s_textCount { get; set; }
@@ -97,10 +101,13 @@ namespace FewTags
 
         private static void GeneratePlate(string uid, string plateText, int multiplier,Color32 color)
         {
+            //This Was Used For Testing Mainly To Check Lengths Of Things (Sorta Math Related I Guess)
             //MelonLogger.Msg("---PlateText---");
             //MelonLogger.Msg(plateText);
             //MelonLogger.Msg("---PlateText Length---");
             //MelonLogger.Msg(plateText.Length);
+
+            //Try Catch For Incase The Tag Somehow Manages To Mess Up
             try
             {
                 s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 3 : 20) : plateText.Length;
@@ -130,9 +137,10 @@ namespace FewTags
             catch { }
         }
 
-        //Just Gonna Duplicate It For Big Text Because Im Lazy Asf
+        //Duplicated GeneratePlate And Changed/Added A Bit Because I Was Lazy And Wanted A Specific Spot For Big Text
         private static void GenerateBigPlate(string uid, string plateText, int multiplier)
         {
+            //Try Catch For Incase The Tag Somehow Manages To Mess Up
             try
             {
                 s_BigPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
@@ -158,7 +166,7 @@ namespace FewTags
             catch { }
         }
 
-        //At Some Point Will Make This Show Up For Each Person Running The Mod If I Figure Out How To Since I Don't Have A Server
+        //At Some Point Will Make This Show Up For Each Person Running The Mod If I Figure Out How To Since I Don't Have A Server Nor Do I Plan On Using One
         public static void CreateLogo(string uid)
         {
             s_plateTransform = GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform;
@@ -173,6 +181,7 @@ namespace FewTags
             GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform.localScale = new Vector3(0.45f, 0.45f, 1);
         }
 
+        //Downloads The String Of The Json Aka Tags
         private static void DownloadString()
         {
             using (WebClient wc = new WebClient())
