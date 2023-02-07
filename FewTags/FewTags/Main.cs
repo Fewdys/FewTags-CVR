@@ -24,7 +24,7 @@ namespace FewTags
 {
     public class Main : MelonMod
     {
-        public static bool NocturnalTagsLoaded { get; private set; }
+        public static bool CustomNameplatesLoaded { get; private set; }
 
         private static float a;
         private static float b;
@@ -147,7 +147,7 @@ namespace FewTags
                     sizeString += splited[1][i];
                 }
                 // Moves Big Text Based On Weather Or Not Nocturnal Tags Is Loaded
-                s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, 0.758f + (int.Parse(sizeString)) * 0.0075f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0035f, 0);
+                s_BigPlateHolder.transform.localPosition = CustomNameplatesLoaded ? new Vector3(0, 0.758f + (int.Parse(sizeString)) * 0.0075f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0035f, 0);
                 GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
                 GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
                 GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
