@@ -159,8 +159,8 @@ namespace FewTags
                 s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().color = new Color(r, g, b, 0.55f);
                 s_textMeshProGmj2.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
 
-                s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
-                s_dev.transform.gameObject.SetActive(false);
+                //s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
+                //s_dev.transform.gameObject.SetActive(false);
             }
             catch { }
         }
