@@ -24,7 +24,7 @@ namespace FewTags
 {
     public class Main : MelonMod
     {
-        public static bool CustomNameplatesLoaded { get; private set; }
+        public static bool NocturnalTagsLoaded { get; private set; }
 
         private static float a;
         private static float b;
@@ -67,14 +67,18 @@ namespace FewTags
             {
                 ReloadString();
                 MelonLogger.Msg("Reloaded Tags, Please Rejoin World If Needed.");
-                CohtmlHud.Instance.ViewDropText("FewTags", "Connected", "Connected To FewTags");
+                CohtmlHud.Instance.ViewDropText("FewTags", "Connected", "Downloading Tags");
             }
         }
 
         // Used For The Keybind To Update The Tags
         private void ReloadString()
         {
-            _userArr.Clear();
+            try
+            {
+                _userArr.Clear();
+            }
+            catch { }
             DownloadString();
         }
 
@@ -147,7 +151,7 @@ namespace FewTags
                     sizeString += splited[1][i];
                 }
                 // Moves Big Text Based On Weather Or Not Nocturnal Tags Is Loaded
-                s_BigPlateHolder.transform.localPosition = CustomNameplatesLoaded ? new Vector3(0, 0.758f + (int.Parse(sizeString)) * 0.0075f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0035f, 0);
+                s_BigPlateHolder.transform.localPosition = NocturnalTagsLoaded ? new Vector3(0, 0.758f + (int.Parse(sizeString)) * 0.0075f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0035f, 0);
                 GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
                 GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
                 GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
@@ -158,9 +162,6 @@ namespace FewTags
                 s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().autoSizeTextContainer = true;
                 s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>().color = new Color(r, g, b, 0.55f);
                 s_textMeshProGmj2.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
-
-                //s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
-                //s_dev.transform.gameObject.SetActive(false);
             }
             catch { }
         }
@@ -183,8 +184,16 @@ namespace FewTags
         // Downloads The String Of The Json Aka Tags
         private static void DownloadString()
         {
-            using (WebClient wc = new WebClient())
-                _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json"));
+            try
+            {
+                using (WebClient wc = new WebClient())
+                {
+                    _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json"));
+                    MelonLogger.Msg(ConsoleColor.Green, "Downloaded Tags");
+                }
+            }
+            catch { MelonLogger.Msg(ConsoleColor.DarkRed, "Error Downloading Tags (Likely A Github Issue or A Internet/Service Issue)"); }
+
         }
     }
 }
