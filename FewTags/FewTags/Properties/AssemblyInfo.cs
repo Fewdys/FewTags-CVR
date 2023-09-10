@@ -1,7 +1,6 @@
-﻿using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿using MelonLoader;
+using System.Reflection;
 using System.Runtime.InteropServices;
-using MelonLoader;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
@@ -14,7 +13,7 @@ using MelonLoader;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: MelonInfo(typeof(FewTags.Main), "FewTags", "1.0.6", "Fewdy")]
+[assembly: MelonInfo(typeof(FewTags.Main), "FewTags", "1.0.7", "Fewdy")]
 [assembly: MelonColor(System.ConsoleColor.Cyan)]
 [assembly: MelonGame("Alpha Blend Interactive", "ChilloutVR")]
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -35,5 +34,5 @@ using MelonLoader;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.6.0")]
-[assembly: AssemblyFileVersion("1.0.6.0")]
+[assembly: AssemblyVersion("1.0.7.0")]
+[assembly: AssemblyFileVersion("1.0.7.0")]
