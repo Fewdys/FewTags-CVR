@@ -74,7 +74,7 @@ namespace FewTags
             }
             catch // not gonna let yourself know if there was an issue clearing?? let me fix that for you
             {
-                MelonLogger.Msg("Couldn't Clear Tags List - Probably Because There Were No Tags To Clear");
+                MelonLogger.Msg(ConsoleColor.Yellow, "Couldn't Clear Tags List - Probably Because There Were No Tags To Clear");
             }
             DownloadString();
         }
@@ -153,11 +153,11 @@ namespace FewTags
                 {
                     if (uid != null)
                     {
-                        MelonLogger.Msg($"Failed To Create Nameplate On {uid}");
+                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create Nameplate On {uid}");
                     }
                     else
                     {
-                        MelonLogger.Msg($"Failed To Create Nameplate");
+                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create Nameplate");
                     }
                 }
             }
@@ -200,11 +200,11 @@ namespace FewTags
                 {
                     if (uid != null)
                     {
-                        MelonLogger.Msg($"Failed To Create BigNameplate On {uid}");
+                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create BigNameplate On {uid}");
                     }
                     else
                     {
-                        MelonLogger.Msg($"Failed To Create BigNameplate");
+                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create BigNameplate");
                     }
                 }
             }
