@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ namespace FewTags
         private static float g;
         private static float r;
 
+        static bool isOverlay = false;
         private static List<Json.User> _userArr { get; set; }
         private static GameObject s_namePlate { get; set; }
         private static GameObject s_dev { get; set; }
@@ -42,6 +44,7 @@ namespace FewTags
             ChatBoxLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "ChatBox");
             MelonLogger.Msg("Initializing.");
             MelonLogger.Msg("FewTags Loaded. Press Slash To Reload Tags");
+            MelonLogger.Msg(ConsoleColor.Magenta, "Nameplate Overlay/Nameplate ESP - Keybind: RightCTRL + O (Rejoin World To Apply)");
             DownloadString();
             _hInstance.Patch(typeof(PlayerNameplate).GetMethod(nameof(PlayerNameplate.UpdateNamePlate)), null, typeof(Main).GetMethod(nameof(OnPlayerJoin), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).ToNewHarmonyMethod());
             MelonCoroutines.Start(WaitForNamePlate());
@@ -62,6 +65,40 @@ namespace FewTags
                 ReloadString();
                 MelonLogger.Msg("Reloaded Tags, Please Rejoin World If Needed.");
                 CohtmlHud.Instance.ViewDropText("FewTags", "Connected", "Downloading Tags");
+            }
+
+            // Overlay Toggle On Off // -- I'd rewrite the entire mod if I did this the way I'd personally like to but whatever I guess lol
+            if (isOverlay == false)
+            {
+                if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.O))
+                {
+                    isOverlay = true;
+                    MelonLogger.Msg(ConsoleColor.Green, "Enabled Nameplate Overlay/Nameplate ESP (Rejoin World To Apply)");
+                    if (CohtmlHud.Instance != null)
+                    {
+                        try // Incase it fails in whatever case
+                        {
+                            CohtmlHud.Instance.ViewDropText("FewTags", "Enabled Nameplate Overlay/ESP", "Rejoin World To Apply");
+                        }
+                        catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Display CohtmlHud Message"); }
+                    }
+                }
+            }
+            else if (isOverlay == true)
+            {
+                if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.O))
+                {
+                    isOverlay = false;
+                    MelonLogger.Msg(ConsoleColor.DarkGray, "Disabled Nameplate Overlay/Nameplate ESP (Rejoin World To Apply)");
+                    if (CohtmlHud.Instance != null)
+                    {
+                        try // Incase it fails in whatever case
+                        {
+                            CohtmlHud.Instance.ViewDropText("FewTags", "Disabled Nameplate Overlay/ESP", "Rejoin World To Apply");
+                        }
+                        catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Display CohtmlHud Message"); }
+                    }
+                }
             }
         }
 
@@ -116,6 +153,7 @@ namespace FewTags
             // MelonLogger.Msg(plateText.Length);
 
             if (plateText == null) { return; } // why make the plate if it has no text to start with?
+            else if (uid == null) { return; } // this one isnt really needed tbh but personally I like to check to prevent code that shouldn't be running to run
             else
             {
                 try  // Try Catch For Incase The Tag Somehow Manages To Mess Up -- Improved For You <3
@@ -143,7 +181,7 @@ namespace FewTags
                     tmpc.autoSizeTextContainer = true;
                     tmpc.enableCulling = true;
                     tmpc.material.enableInstancing = true;
-
+                    tmpc.isOverlay = isOverlay;
 
                     // Done Just For Removing The Text Under Devs/Mods - Doesn't Effect Being Able To See Who Is A Dev/Mod ect. (Done For Personal Preference To Make Things Cleaner)
                     s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
@@ -167,6 +205,7 @@ namespace FewTags
         private static void GenerateBigPlate(string uid, string plateText, int multiplier)
         {
             if (plateText == null) { return; } // again why make the plate if it has no text to start with?
+            else if (uid == null) { return; } // again this one isnt really needed tbh but personally I like to check to prevent code that shouldn't be running to run
             else
             {
                 try  // Try Catch For Incase The Tag Somehow Manages To Mess Up -- Improved For You <3
@@ -195,6 +234,7 @@ namespace FewTags
                     bptmpc.autoSizeTextContainer = true;
                     bptmpc.color = new Color(r, g, b, 0.55f);
                     bptmpc.enableCulling = true;
+                    bptmpc.isOverlay = isOverlay;
                 }
                 catch // again why not have it tell us where something went wrong instead of just basically catching it each time it fails
                 {
