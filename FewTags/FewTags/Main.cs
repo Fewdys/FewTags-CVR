@@ -234,6 +234,7 @@ namespace FewTags
                     bptmpc.autoSizeTextContainer = true;
                     bptmpc.color = new Color(r, g, b, 0.55f);
                     bptmpc.enableCulling = true;
+                    bptmpc.material.enableInstancing = true;
                     bptmpc.isOverlay = isOverlay;
                 }
                 catch // again why not have it tell us where something went wrong instead of just basically catching it each time it fails
