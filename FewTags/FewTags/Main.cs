@@ -1,4 +1,5 @@
-﻿using ABI_RC.Core.Player;
+﻿using ABI_RC.Core.InteractionSystem;
+using ABI_RC.Core.Player;
 using ABI_RC.Core.UI;
 using FewTags.Utils;
 using Harmony;
@@ -61,9 +62,13 @@ namespace FewTags
         {
             if (Input.GetKeyDown(KeyCode.Slash))
             {
-                ReloadString();
-                MelonLogger.Msg("Reloaded Tags, Please Rejoin World If Needed.");
-                CohtmlHud.Instance.ViewDropText("FewTags", "Connected", "Downloading Tags");
+                if (CVR_MenuManager.Instance.quickMenuCollider.enabled == true || ViewManager.Instance.isGameMenuOpen() == true) { return; } // we don't wanna accidently reload tags while menu's are open
+                else
+                {
+                    ReloadString();
+                    MelonLogger.Msg("Reloaded Tags, Please Rejoin World If Needed.");
+                    CohtmlHud.Instance.ViewDropText("FewTags", "Connected", "Downloading Tags");
+                }
             }
 
             // Overlay Toggle On Off // -- I'd rewrite the entire mod if I did this the way I'd personally like to but whatever I guess lol
