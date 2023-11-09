@@ -1,5 +1,7 @@
 ﻿using ABI_RC.Core.InteractionSystem;
+using ABI_RC.Core.Networking.IO.Instancing;
 using ABI_RC.Core.Player;
+using ABI_RC.Core.Savior;
 using ABI_RC.Core.UI;
 using FewTags.Utils;
 using Harmony;
@@ -44,7 +46,7 @@ namespace FewTags
             ChatBoxLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "ChatBox");
             MelonLogger.Msg("Initializing.");
             MelonLogger.Msg("FewTags Loaded. Press Slash To Reload Tags");
-            MelonLogger.Msg(ConsoleColor.Magenta, "Nameplate Overlay/Nameplate ESP - Keybind: RightCTRL + O (Rejoin World To Apply)");
+            MelonLogger.Msg(ConsoleColor.Magenta, "Nameplate Overlay/Nameplate ESP - Keybind: RightCTRL + O");
             DownloadString();
             _hInstance.Patch(typeof(PlayerNameplate).GetMethod(nameof(PlayerNameplate.UpdateNamePlate)), null, typeof(Main).GetMethod(nameof(OnPlayerJoin), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).ToNewHarmonyMethod());
             MelonCoroutines.Start(WaitForNamePlate());
@@ -77,15 +79,16 @@ namespace FewTags
                 if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.O))
                 {
                     isOverlay = true;
-                    MelonLogger.Msg(ConsoleColor.Green, "Enabled Nameplate Overlay/Nameplate ESP (Rejoin World To Apply)");
+                    MelonLogger.Msg(ConsoleColor.Green, "Enabled Nameplate Overlay/Nameplate ESP");
                     if (CohtmlHud.Instance != null)
                     {
                         try // Incase it fails in whatever case
                         {
-                            CohtmlHud.Instance.ViewDropText("FewTags", "Enabled Nameplate Overlay/ESP", "Rejoin World To Apply");
+                            CohtmlHud.Instance.ViewDropText("FewTags", "Enabled Nameplate Overlay/ESP", "Rejoining World");
                         }
                         catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Display CohtmlHud Message"); }
                     }
+                    RejoinWorld();
                 }
             }
             else if (isOverlay == true)
@@ -93,15 +96,16 @@ namespace FewTags
                 if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.O))
                 {
                     isOverlay = false;
-                    MelonLogger.Msg(ConsoleColor.DarkGray, "Disabled Nameplate Overlay/Nameplate ESP (Rejoin World To Apply)");
+                    MelonLogger.Msg(ConsoleColor.DarkGray, "Disabled Nameplate Overlay/Nameplate ESP");
                     if (CohtmlHud.Instance != null)
                     {
                         try // Incase it fails in whatever case
                         {
-                            CohtmlHud.Instance.ViewDropText("FewTags", "Disabled Nameplate Overlay/ESP", "Rejoin World To Apply");
+                            CohtmlHud.Instance.ViewDropText("FewTags", "Disabled Nameplate Overlay/ESP", "Rejoining World");
                         }
                         catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Display CohtmlHud Message"); }
                     }
+                    RejoinWorld();
                 }
             }
         }
@@ -171,6 +175,7 @@ namespace FewTags
                     s_imageHolder.GetComponent<UnityEngine.UI.Image>().color = color;
                     GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
                     GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
+                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/UserImage").gameObject);
                     GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
                     s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
                     s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
@@ -229,6 +234,7 @@ namespace FewTags
                     GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
                     GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
                     GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
+                    GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/UserImage").gameObject);
                     GameObject.Destroy(s_BigPlateHolder.transform.Find("Disable with Menu").gameObject);
                     s_textMeshProGmj2 = s_BigPlateHolder.transform.Find("TMP:Username").gameObject;
                     s_textMeshProGmj2.transform.localPosition = Vector3.zero;
@@ -283,6 +289,23 @@ namespace FewTags
             }
             catch { MelonLogger.Msg(ConsoleColor.DarkRed, "Error Downloading Tags (Likely A Github Issue or A Internet/Service Issue)"); } // see like this you gave a reason for a possible issue. you should do that way more often when doing try catch
 
+        }
+
+        // Will Rejoin The Current World You Are In For You
+        public static void RejoinWorld()
+        {
+            var id = MetaPort.Instance.CurrentWorldId.ToString() + ":" + MetaPort.Instance.CurrentInstanceId.ToString();
+            string[] parts = id.Split(new[] { ":" }, StringSplitOptions.None);
+            string instanceid = parts[1].ToString();
+            string worldid = parts[0].ToString();
+            try
+            {
+                Instances.GetInstanceJoinTokenTask(instanceid, worldid);
+            }
+            catch
+            {
+                MelonLogger.Msg(System.ConsoleColor.Red, "Failed To Join World: " + worldid + ":" + instanceid);
+            }
         }
     }
 }
