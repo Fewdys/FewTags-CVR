@@ -173,10 +173,14 @@ namespace FewTags
                     s_MainPlateHolder.layer = 69; // ;)
                     s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
                     s_imageHolder.GetComponent<UnityEngine.UI.Image>().color = color;
-                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
-                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
-                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/UserImage").gameObject);
-                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
+                    try // This Is Just Here Incase The Paths of Objects To Destroy Change (A Try Catch In A Try Catch May Seem Repetitive & Stupid, But It's For The Sake Of Knowing Whats Wrong Easily)
+                    {
+                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
+                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
+                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/UserImage").gameObject);
+                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
+                    }
+                    catch { MelonLogger.Msg(ConsoleColor.DarkRed, "Failed To Destroy One Or More Objects On Created FewTags-Nameplate"); }
                     s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
                     s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
                     s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 10, 0.5f);
@@ -231,11 +235,15 @@ namespace FewTags
                     }
                     // Moves Big Text Based On Weather Or Not ChatBox Is Loaded -- Idk Why You Were Checking For A Deprecated Mod
                     s_BigPlateHolder.transform.localPosition = ChatBoxLoaded ? new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0075f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0035f, 0);
-                    GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
-                    GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
-                    GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
-                    GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/UserImage").gameObject);
-                    GameObject.Destroy(s_BigPlateHolder.transform.Find("Disable with Menu").gameObject);
+                    try // This Is Just Here Incase The Paths of Objects To Destroy Change (A Try Catch In A Try Catch May Seem Repetitive & Stupid, But It's For The Sake Of Knowing Whats Wrong Easily)
+                    {
+                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
+                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
+                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
+                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/UserImage").gameObject);
+                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Disable with Menu").gameObject);
+                    }
+                    catch { MelonLogger.Msg(ConsoleColor.DarkRed, "Failed To Destroy One Or More Objects On Created FewTags-BigNameplate"); }
                     s_textMeshProGmj2 = s_BigPlateHolder.transform.Find("TMP:Username").gameObject;
                     s_textMeshProGmj2.transform.localPosition = Vector3.zero;
                     s_textMeshProGmj2.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
