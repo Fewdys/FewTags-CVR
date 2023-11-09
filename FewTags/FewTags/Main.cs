@@ -180,7 +180,7 @@ namespace FewTags
                         GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/UserImage").gameObject);
                         GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
                     }
-                    catch { MelonLogger.Msg(ConsoleColor.DarkRed, "Failed To Destroy One Or More Objects On Created FewTags-Nameplate"); }
+                    catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-Nameplate ({uid})"); }
                     s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
                     s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
                     s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 10, 0.5f);
@@ -243,7 +243,7 @@ namespace FewTags
                         GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/UserImage").gameObject);
                         GameObject.Destroy(s_BigPlateHolder.transform.Find("Disable with Menu").gameObject);
                     }
-                    catch { MelonLogger.Msg(ConsoleColor.DarkRed, "Failed To Destroy One Or More Objects On Created FewTags-BigNameplate"); }
+                    catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-BigNameplate ({uid})"); }
                     s_textMeshProGmj2 = s_BigPlateHolder.transform.Find("TMP:Username").gameObject;
                     s_textMeshProGmj2.transform.localPosition = Vector3.zero;
                     s_textMeshProGmj2.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
@@ -269,7 +269,7 @@ namespace FewTags
             }
         }
 
-        // At Some Point Will Make This Show Up For Each Person Running The Mod If I Figure Out How To Since I Don't Have A Server Nor Do I Plan On Using One
+        // At Some Point Will Make This Show Up For Each Person Running The Mod If I Figure Out How To Since I Don't Have A Server Nor Do I Plan On Using One // Small Update On This, Probably Not, Or Atleast Not Anytime Soon
         public static void CreateLogo(string uid)
         {
             s_plateTransform = GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform;
