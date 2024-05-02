@@ -43,7 +43,6 @@ namespace FewTags
 
         public override void OnApplicationStart()
         {
-            ChatBoxLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "ChatBox");
             MelonLogger.Msg("Initializing.");
             MelonLogger.Msg("FewTags Loaded. Press Slash To Reload Tags");
             MelonLogger.Msg(ConsoleColor.Magenta, "Nameplate Overlay/Nameplate ESP - Keybind: RightCTRL + O");
@@ -175,10 +174,12 @@ namespace FewTags
                     s_imageHolder.GetComponent<UnityEngine.UI.Image>().color = color;
                     try // This Is Just Here Incase The Paths of Objects To Destroy Change (A Try Catch In A Try Catch May Seem Repetitive & Stupid, But It's For The Sake Of Knowing Whats Wrong Easily)
                     {
-                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
-                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
-                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/UserImage").gameObject);
+                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
+                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
+                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/UserImage").gameObject);
+                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/Image").gameObject);
                         GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
+                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
                     }
                     catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-Nameplate ({uid})"); }
                     s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
@@ -234,14 +235,15 @@ namespace FewTags
                         sizeString += splited[1][i];
                     }
                     // Moves Big Text Based On Weather Or Not ChatBox Is Loaded -- Idk Why You Were Checking For A Deprecated Mod
-                    s_BigPlateHolder.transform.localPosition = ChatBoxLoaded ? new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0075f, 0) : new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0035f, 0);
+                    s_BigPlateHolder.transform.localPosition = new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0075f, 0);
                     try // This Is Just Here Incase The Paths of Objects To Destroy Change (A Try Catch In A Try Catch May Seem Repetitive & Stupid, But It's For The Sake Of Knowing Whats Wrong Easily)
                     {
-                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
-                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
-                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
-                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/UserImage").gameObject);
+                        //GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
+                        //GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
+                        //GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
+                        //GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/UserImage").gameObject);
                         GameObject.Destroy(s_BigPlateHolder.transform.Find("Disable with Menu").gameObject);
+                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject);
                     }
                     catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-BigNameplate ({uid})"); }
                     s_textMeshProGmj2 = s_BigPlateHolder.transform.Find("TMP:Username").gameObject;
