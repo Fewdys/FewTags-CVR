@@ -87,6 +87,7 @@ namespace FewTags
                         }
                         catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Display CohtmlHud Message"); }
                     }
+
                     RejoinWorld();
                 }
             }
