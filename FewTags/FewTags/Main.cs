@@ -29,6 +29,8 @@ namespace FewTags
         private static float r;
 
         static bool isOverlay = false;
+        private static Json._Tags s_tags { get; set; }
+        public static string s_rawTags { get; set; }
         private static List<Json.User> _userArr { get; set; }
         private static GameObject s_namePlate { get; set; }
         private static GameObject s_dev { get; set; }
@@ -115,7 +117,7 @@ namespace FewTags
         {
             try
             {
-                _userArr.Clear();
+                s_tags.records.Clear();
             }
             catch // not gonna let yourself know if there was an issue clearing?? let me fix that for you
             {
@@ -130,8 +132,12 @@ namespace FewTags
         private static void OnPlayerJoin(PlayerNameplate __instance)
         {
             s_uId = __instance.transform.parent.name;
-            s_user = _userArr.FirstOrDefault(x => x.UserId == s_uId);
+            s_user = s_tags.records.FirstOrDefault(x => x.UserId == s_uId);
             if (s_user == null) return;
+            if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-Default") == null) // why wasnt there a check for if it already exists?
+            {
+                    GenerateDefaultPlate(s_uId, "<b><color=#ff0000>-</color> <color=#ff7f00>F</color><color=#ffbf00>e</color><color=#ffff00>w</color><color=#80ff00>T</color><color=#00ff00>a</color><color=#00ff80>g</color><color=#00ffff>s</color> <color=#0000ff>-</color></b>", 0, new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
+            }
             if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-NamePlate") == null) // why wasnt there a check for if it already exists?
             {
                 for (int i = 0; i < s_user.NamePlatesText.Length; i++)
@@ -151,8 +157,7 @@ namespace FewTags
 
         private static float s_textCount { get; set; }
         private static GameObject s_imageHolder { get; set; }
-
-        private static void GeneratePlate(string uid, string plateText, int multiplier, Color32 color)
+        private static void GenerateDefaultPlate(string uid, string plateText, int multiplier, Color32 color)
         {
             // This Was Used For Testing Mainly To Check Lengths Of Things (Sorta Math Related I Guess)
             // MelonLogger.Msg("---PlateText---");
@@ -169,6 +174,69 @@ namespace FewTags
                     s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 3 : 20) : plateText.Length;
                     s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
                     s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.155f - (multiplier) * 0.0778f, 0);
+                    s_MainPlateHolder.name = "FewTags-Default"; // why were you not naming the object to be able to find it if needed?
+                    s_MainPlateHolder.layer = 69; // ;)
+                    s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
+                    s_imageHolder.GetComponent<UnityEngine.UI.Image>().color = color;
+                    try // This Is Just Here Incase The Paths of Objects To Destroy Change (A Try Catch In A Try Catch May Seem Repetitive & Stupid, But It's For The Sake Of Knowing Whats Wrong Easily)
+                    {
+                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
+                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
+                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/UserImage").gameObject);
+                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/Image").gameObject);
+                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
+                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
+                    }
+                    catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-Nameplate ({uid})"); }
+                    s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
+                    s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
+                    s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 10, 0.5f);
+                    s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
+                    s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
+                    s_textMeshProGmj.transform.localPosition = Vector3.zero;
+                    s_textMeshProGmj.gameObject.GetComponent<UnityEngine.RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
+                    var tmpc = s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>(); // why make life more diffucult and not just do this?
+                    tmpc.text = plateText;
+                    tmpc.alignment = TMPro.TextAlignmentOptions.Center;
+                    tmpc.autoSizeTextContainer = true;
+                    tmpc.enableCulling = true;
+                    tmpc.material.enableInstancing = true;
+                    tmpc.isOverlay = isOverlay;
+
+                    // Done Just For Removing The Text Under Devs/Mods - Doesn't Effect Being Able To See Who Is A Dev/Mod ect. (Done For Personal Preference To Make Things Cleaner)
+                    s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
+                    s_dev.transform.gameObject.SetActive(false);
+                }
+                catch // why not have it tell us where something went wrong instead of just basically catching it each time it fails
+                {
+                    if (uid != null)
+                    {
+                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create Nameplate On {uid}");
+                    }
+                    else
+                    {
+                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create Nameplate");
+                    }
+                }
+            }
+        }
+        private static void GeneratePlate(string uid, string plateText, int multiplier, Color32 color)
+        {
+            // This Was Used For Testing Mainly To Check Lengths Of Things (Sorta Math Related I Guess)
+            // MelonLogger.Msg("---PlateText---");
+            // MelonLogger.Msg(plateText);
+            // MelonLogger.Msg("---PlateText Length---");
+            // MelonLogger.Msg(plateText.Length);
+
+            if (plateText == null) { return; } // why make the plate if it has no text to start with?
+            else if (uid == null) { return; } // this one isnt really needed tbh but personally I like to check to prevent code that shouldn't be running to run
+            else
+            {
+                try  // Try Catch For Incase The Tag Somehow Manages To Mess Up -- Improved For You <3
+                {
+                    s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 3 : 20) : plateText.Length;
+                    s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
+                    s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.210f - (multiplier) * 0.0618f, 0);
                     s_MainPlateHolder.name = "FewTags-NamePlate"; // why were you not naming the object to be able to find it if needed?
                     s_MainPlateHolder.layer = 69; // ;)
                     s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
@@ -294,7 +362,8 @@ namespace FewTags
             {
                 using (WebClient wc = new WebClient())
                 {
-                    _userArr = JsonConvert.DeserializeObject<List<Json.User>>(wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json"));
+                    s_rawTags = wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json");
+                    s_tags = JsonConvert.DeserializeObject<Json._Tags>(s_rawTags);
                     MelonLogger.Msg(ConsoleColor.Green, "Downloaded Tags");
                 }
             }
