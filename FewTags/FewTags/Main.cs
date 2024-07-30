@@ -40,6 +40,7 @@ namespace FewTags
         private static GameObject s_textMeshProGmj2 { get; set; }
         private static Transform s_plateTransform { get; set; }
         private static TMPro.TextMeshProUGUI s_Logo { get; set; }
+        public static List<CVRPlayerEntity> p = new List<CVRPlayerEntity>();
 
         private HarmonyInstance _hInstance { get; } = new HarmonyInstance(Guid.NewGuid().ToString());
 
@@ -60,6 +61,35 @@ namespace FewTags
             s_namePlate = Resources.FindObjectsOfTypeAll<PuppetMaster>().FirstOrDefault(x => x.name == "_NetworkedPlayerObject").transform.Find("[NamePlate]/Canvas/Content").gameObject;
         }
 
+        public static void NameplateOverlayLog(bool set)
+        {
+            p = CVRPlayerManager.Instance.NetworkPlayers;
+            if (set == true)
+            {
+                MelonLogger.Msg(System.ConsoleColor.Green, "(Tagged Players) Nameplate ESP On");
+            }
+            else if (set == false)
+            {
+                MelonLogger.Msg(System.ConsoleColor.Red, "(Tagged Players) Nameplate ESP Off");
+            }
+        }
+
+        public static void NameplateESP(PlayerNameplate player)
+        {
+            s_uId = player.transform.parent.name;
+            s_user = s_tags.records.FirstOrDefault(x => x.UserId == s_uId);
+            if (s_user == null) return;
+            if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas") != null)
+            {
+                if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/Content") != null)
+                    GameObject.Find($"{s_uId}/[NamePlate]/Canvas/Content").GetComponentsInChildren<TMPro.TextMeshProUGUI>().All(m => m.isOverlay = isOverlay);
+                if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-Default") != null)
+                    GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-Default").GetComponentsInChildren<TMPro.TextMeshProUGUI>().All(m => m.isOverlay = isOverlay);
+                if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-NamePlate") != null)
+                    GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-NamePlate").GetComponentsInChildren<TMPro.TextMeshProUGUI>().All(m => m.isOverlay = isOverlay);
+            }
+        }
+
         // Keybind To Re-Fetch The Tags (Prevents The Need Of Having To Restart You're Game)
         public override void OnUpdate()
         {
@@ -74,40 +104,24 @@ namespace FewTags
                 }
             }
 
-            // Overlay Toggle On Off // -- I'd rewrite the entire mod if I did this the way I'd personally like to but whatever I guess lol
-            if (isOverlay == false)
+            // Overlay Toggle
+            if (Input.GetKey(KeyCode.RightShift) && Input.GetKeyDown(KeyCode.O))
             {
-                if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.O))
+                if (CVR_MenuManager.Instance.quickMenuCollider.enabled != true && ViewManager.Instance.isGameMenuOpen() != true)
                 {
-                    isOverlay = true;
-                    MelonLogger.Msg(ConsoleColor.Green, "Enabled Nameplate Overlay/Nameplate ESP");
-                    if (CohtmlHud.Instance != null)
+                    isOverlay = !isOverlay;
+                    NameplateOverlayLog(isOverlay);
+                    if (p.Count != 0)
                     {
-                        try // Incase it fails in whatever case
+                        try
                         {
-                            CohtmlHud.Instance.ViewDropText("FewTags", "Enabled Nameplate Overlay/ESP", "Rejoining World");
+                            foreach (var player in p)
+                            {
+                                NameplateESP(player.PlayerNameplate);
+                            }
                         }
-                        catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Display CohtmlHud Message"); }
+                        catch { }
                     }
-
-                    RejoinWorld();
-                }
-            }
-            else if (isOverlay == true)
-            {
-                if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.O))
-                {
-                    isOverlay = false;
-                    MelonLogger.Msg(ConsoleColor.DarkGray, "Disabled Nameplate Overlay/Nameplate ESP");
-                    if (CohtmlHud.Instance != null)
-                    {
-                        try // Incase it fails in whatever case
-                        {
-                            CohtmlHud.Instance.ViewDropText("FewTags", "Disabled Nameplate Overlay/ESP", "Rejoining World");
-                        }
-                        catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Display CohtmlHud Message"); }
-                    }
-                    RejoinWorld();
                 }
             }
         }
@@ -134,6 +148,10 @@ namespace FewTags
             s_uId = __instance.transform.parent.name;
             s_user = s_tags.records.FirstOrDefault(x => x.UserId == s_uId);
             if (s_user == null) return;
+            if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/Content") != null)
+            {
+                GameObject.Find($"{s_uId}/[NamePlate]/Canvas/Content").GetComponentsInChildren<TMPro.TextMeshProUGUI>().All(m => m.isOverlay = isOverlay);
+            }
             if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-Default") == null) // why wasnt there a check for if it already exists?
             {
                     GenerateDefaultPlate(s_uId, "<b><color=#ff0000>-</color> <color=#ff7f00>F</color><color=#ffbf00>e</color><color=#ffff00>w</color><color=#80ff00>T</color><color=#00ff00>a</color><color=#00ff80>g</color><color=#00ffff>s</color> <color=#0000ff>-</color></b>", 0, new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));

@@ -265,7 +265,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetPath)" "A:\Steam\steamapps\common\ChilloutVR\Mods" /Y /I
+    <PostBuildEvent>xcopy "$(TargetPath)" "D:\Steam\steamapps\common\ChilloutVR\Mods" /Y /I
 </PostBuildEvent>
   </PropertyGroup>
 </Project>
