@@ -107,7 +107,8 @@ namespace FewTags
             // Overlay Toggle
             if (Input.GetKey(KeyCode.RightShift) && Input.GetKeyDown(KeyCode.O))
             {
-                if (CVR_MenuManager.Instance.quickMenuCollider.enabled != true && ViewManager.Instance.isGameMenuOpen() != true)
+                if (CVR_MenuManager.Instance.quickMenuCollider.enabled != true || ViewManager.Instance.isGameMenuOpen() != true) { return; }
+                else
                 {
                     isOverlay = !isOverlay;
                     NameplateOverlayLog(isOverlay);
