@@ -10,7 +10,7 @@ Tags/Ranks Mod For Marking Malicious Users/Monkey's, Client Users, Wholesome Use
 - Make Some Sort Of Icon Show For Any User Running The Mod (Without The Use Of A Server)
 
 If You're Interested In Joining My Discord - Which Is Where I Post Changelogs Of My Mods (When I Update Them), Along With Any Plans I Have:
-[Discord Link](https://discord.gg/EN4RrZR)
+[Discord Link](https://discord.gg/A4QwEZJY6f)
 
 Discord: Fewdy#3336
 
