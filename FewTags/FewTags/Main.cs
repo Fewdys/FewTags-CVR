@@ -298,7 +298,7 @@ namespace FewTags
                 animationManager.textMeshPro = tmpc;
 
                 // Parse and add animations based on tags
-                if (plateText.StartsWith("@cyln")) // needs to go first
+                if (plateText.StartsWith("@cyln"))
                 {
                     animationManager.animationTypes.Add(AnimationType.CYLN);
                     plateText = plateText.Remove(0, "@cyln".Length).Insert(0, "");
