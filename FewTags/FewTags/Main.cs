@@ -300,7 +300,7 @@ namespace FewTags
                         animationManager.currentAnimationType = AnimationType.SmoothRainbow;
                         animationManager.StartCoroutine(animationManager.SmoothRainbowAnimation());
                         break;
-                    case "@l ":
+                    case "@l":
                         tmpc.text = plateText;
                         animationManager.textMeshPro = tmpc;
                         animationManager.currentAnimationType = AnimationType.LetterByLetter;
