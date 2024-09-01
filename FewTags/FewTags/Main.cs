@@ -1,4 +1,5 @@
 ﻿using ABI_RC.Core.InteractionSystem;
+using ABI_RC.Core.Networking.IO.Global;
 using ABI_RC.Core.Networking.IO.Instancing;
 using ABI_RC.Core.Player;
 using ABI_RC.Core.Savior;
@@ -300,22 +301,22 @@ namespace FewTags
                 if (plateText.StartsWith("@cyln")) // needs to go first
                 {
                     animationManager.animationTypes.Add(AnimationType.CYLN);
-                    plateText = plateText.Replace("@cyln", "");
+                    plateText = plateText.Remove(0, "@cyln".Length).Insert(0, "");
                 }
                 if (plateText.StartsWith("@letter"))
                 {
                     animationManager.animationTypes.Add(AnimationType.LetterByLetter);
-                    plateText = plateText.Replace("@letter", "");
+                    plateText = plateText.Remove(0, "@letter".Length).Insert(0, "");
                 }
                 if (plateText.StartsWith("@rain"))
                 {
                     animationManager.animationTypes.Add(AnimationType.Rainbow);
-                    plateText = plateText.Replace("@rain", "");
+                    plateText = plateText.Remove(0, "@rain".Length).Insert(0, "");
                 }
                 if (plateText.StartsWith("@sr"))
                 {
                     animationManager.animationTypes.Add(AnimationType.SmoothRainbow);
-                    plateText = plateText.Replace("@sr", "");
+                    plateText = plateText.Remove(0, "@sr".Length).Insert(0, "");
                 }
 
                 // Set the final text after removing the tags
