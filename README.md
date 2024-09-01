@@ -5,7 +5,6 @@ Tags/Ranks Mod For Marking Malicious Users/Monkey's, Client Users, Wholesome Use
 - Slash (/) To Reload Tags. (Might Require You To Rejoin World After Pressed - Usually Just Updates After A Few Minutes Though)
 
 #### (Ordered By Priority) To Do List:
-- Make Animated Tags
 - Make It Possible To See Your Own Tags/Nameplate (Will Do When & If Tag DB Gets Larger)
 - Make Some Sort Of Icon Show For Any User Running The Mod (Without The Use Of A Server)
 
