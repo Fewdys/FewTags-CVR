@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
+using TMPro;
 using UnityEngine;
 
 // Thanks To Edward7 For The Original Base
@@ -176,6 +177,56 @@ namespace FewTags
 
         private static float s_textCount { get; set; }
         private static GameObject s_imageHolder { get; set; }
+
+        private static IEnumerator RainbowTagAnimation(TMPro.TextMeshProUGUI textMeshPro, float duration)
+        {
+            float time = 0f;
+            while (true)
+            {
+                time += Time.deltaTime / duration;
+                if (time > 1f) time = 0f;
+                Color color1 = Color.HSVToRGB(time, 1f, 1f);
+                Color color2 = Color.HSVToRGB((time + 0.5f) % 1f, 1f, 1f);
+                textMeshPro.color = Color.Lerp(color1, color2, Mathf.PingPong(Time.time * 2f, 1f));
+                yield return null;
+            }
+        }
+
+        private static IEnumerator RainbowTagAnimation2(TMPro.TextMeshProUGUI textMeshPro, float duration)
+        {
+            float time = 0f;
+            int characterCount = textMeshPro.textInfo.characterCount;
+
+            while (true)
+            {
+                time += Time.deltaTime / duration;
+                if (time > 1f) time = 0f;
+
+                // Generate a color for each character based on the time value
+                Color[] colors = new Color[characterCount];
+                for (int i = 0; i < characterCount; i++)
+                {
+                    float t = (i + time * 10) / characterCount; // Adjust to control color transition speed
+                    colors[i] = Color.HSVToRGB(t, 1f, 1f);
+                }
+
+                // Apply the colors to the text
+                textMeshPro.ForceMeshUpdate();
+                var textMesh = textMeshPro.textInfo.meshInfo[0];
+                for (int i = 0; i < characterCount; i++)
+                {
+                    int vertexIndex = textMeshPro.textInfo.characterInfo[i].vertexIndex;
+                    textMesh.colors32[vertexIndex] = colors[i];
+                    textMesh.colors32[vertexIndex + 1] = colors[i];
+                    textMesh.colors32[vertexIndex + 2] = colors[i];
+                    textMesh.colors32[vertexIndex + 3] = colors[i];
+                }
+                textMeshPro.UpdateVertexData(TMP_VertexDataUpdateFlags.All);
+
+                yield return null;
+            }
+        }
+
         private static void GenerateDefaultPlate(string uid, string plateText, int multiplier, Color32 color)
         {
             // This Was Used For Testing Mainly To Check Lengths Of Things (Sorta Math Related I Guess)
@@ -215,12 +266,21 @@ namespace FewTags
                     s_textMeshProGmj.transform.localPosition = Vector3.zero;
                     s_textMeshProGmj.gameObject.GetComponent<UnityEngine.RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
                     var tmpc = s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>(); // why make life more diffucult and not just do this?
-                    tmpc.text = plateText;
                     tmpc.alignment = TMPro.TextAlignmentOptions.Center;
                     tmpc.autoSizeTextContainer = true;
                     tmpc.enableCulling = true;
                     tmpc.material.enableInstancing = true;
                     tmpc.isOverlay = isOverlay;
+                    if (plateText.StartsWith("@r"))
+                    {
+                        tmpc.text = plateText.Replace("@r", "");
+                        // Start the rainbow animation coroutine
+                        s_MainPlateHolder.GetComponent<MonoBehaviour>().StartCoroutine(RainbowTagAnimation2(tmpc, 4f)); // Adjust duration as needed
+                    }
+                    else
+                    {
+                        tmpc.text = plateText;
+                    }
 
                     // Done Just For Removing The Text Under Devs/Mods - Doesn't Effect Being Able To See Who Is A Dev/Mod ect. (Done For Personal Preference To Make Things Cleaner)
                     s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
