@@ -244,96 +244,92 @@ namespace FewTags
         }
         private static void GeneratePlate(string uid, string plateText, int multiplier, Color32 color)
         {
-            if (plateText == null) return;
-            if (uid == null) return;
+            if (string.IsNullOrEmpty(plateText) || string.IsNullOrEmpty(uid)) return;
 
             try
             {
-                s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count * 23 - 3) : plateText.Length;
+                // Calculate the text count, adjusting for any color tags
+                s_textCount = plateText.Contains("<color=")
+                    ? plateText.Length - (Regex.Matches(plateText, "<color=").Count * 23 - 3)
+                    : plateText.Length;
 
-                s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
+                // Instantiate the main plate holder and set its position, scale, and layer
+                s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find($"/{uid}[NamePlate]/Canvas").transform);
                 s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.210f - (multiplier) * 0.0618f, 0);
                 s_MainPlateHolder.name = "FewTags-NamePlate";
                 s_MainPlateHolder.layer = 69;
+
+                // Configure the image holder and remove unnecessary components
                 s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
                 s_imageHolder.GetComponent<UnityEngine.UI.Image>().color = color;
 
                 try
                 {
+                    // Safely destroy unneeded components
                     GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
-                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
+                    GameObject.Destroy(s_imageHolder);
                 }
                 catch
                 {
                     MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-Nameplate ({uid})");
                 }
 
+                // Adjust the scale and size of the main plate and text container
                 s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
-                s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
-                s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 10, 0.5f);
+
+                // Reference to TextMeshPro GameObject and adjust its scale and position
                 s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
                 s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
                 s_textMeshProGmj.transform.localPosition = Vector3.zero;
-                s_textMeshProGmj.gameObject.GetComponent<UnityEngine.RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
+                s_textMeshProGmj.GetComponent<RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
 
                 var tmpc = s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>();
 
-                // Determine which animation to use based on plateText prefix
-                string animationType = plateText.Substring(0, 4);
-                plateText = plateText.Substring(4); // Remove the prefix
-
-                // Configure the TextMeshPro component for the selected animation
-                var animationManager = s_MainPlateHolder.AddComponent<AnimationManager>();
-                animationManager.textMeshPro = tmpc;
-
-                // Directly configure animation manager based on animation type
-                switch (animationType)
-                {
-                    case "@r":
-                        tmpc.text = plateText;
-                        animationManager.currentAnimationType = AnimationType.Rainbow;
-                        animationManager.StartCoroutine(animationManager.RainbowTagAnimation());
-                        break;
-                    case "@sr":
-                        tmpc.text = plateText;
-                        animationManager.currentAnimationType = AnimationType.SmoothRainbow;
-                        animationManager.StartCoroutine(animationManager.SmoothRainbowAnimation());
-                        break;
-                    case "@l":
-                        tmpc.text = plateText;
-                        animationManager.currentAnimationType = AnimationType.LetterByLetter;
-                        animationManager.StartCoroutine(animationManager.LetterByLetterAnimation());
-                        break;
-                    case "@rl":
-                        tmpc.text = plateText;
-                        animationManager.currentAnimationType = AnimationType.RainbowAndLetterByLetter;
-                        animationManager.StartCoroutine(animationManager.RainbowAndLetterByLetterAnimation());
-                        break;
-                    case "@srl":
-                        tmpc.text = plateText;
-                        animationManager.currentAnimationType = AnimationType.SmoothRainbowAndLetterByLetter;
-                        animationManager.StartCoroutine(animationManager.SmoothRainbowAndLetterByLetterAnimation());
-                        break;
-                    default:
-                        tmpc.text = plateText;
-                        // Optional: Default animation or no animation
-                        break;
-                }
-
+                // Set TextMeshPro properties
                 tmpc.alignment = TMPro.TextAlignmentOptions.Center;
                 tmpc.autoSizeTextContainer = true;
                 tmpc.enableCulling = true;
                 tmpc.material.enableInstancing = true;
                 tmpc.isOverlay = isOverlay;
 
-                s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
-                s_dev.transform.gameObject.SetActive(false);
+                // Add and configure the AnimationManager
+                AnimationManager animationManager = s_textMeshProGmj.gameObject.AddComponent<AnimationManager>();
+                animationManager.textMeshPro = tmpc;
+
+                // Parse and add animations based on tags
+                if (plateText.StartsWith("@bounce")) // needs to go first
+                {
+                    animationManager.animationTypes.Add(AnimationType.Bounce);
+                    plateText = plateText.Replace("@bounce", "");
+                }
+                if (plateText.StartsWith("@sr"))
+                {
+                    animationManager.animationTypes.Add(AnimationType.SmoothRainbow);
+                    plateText = plateText.Replace("@sr", "");
+                }
+                if (plateText.StartsWith("@letter"))
+                {
+                    animationManager.animationTypes.Add(AnimationType.LetterByLetter);
+                    plateText = plateText.Replace("@letter", "");
+                }
+                if (plateText.StartsWith("@rain"))
+                {
+                    animationManager.animationTypes.Add(AnimationType.Rainbow);
+                    plateText = plateText.Replace("@rain", "");
+                }
+
+                // Set the final text after removing the tags
+                tmpc.text = plateText;
+
+                // Start the animation
+                animationManager.Start();
             }
-            catch
+            catch (Exception e)
             {
-                MelonLogger.Msg(ConsoleColor.DarkRed, uid != null ? $"Failed To Create Nameplate On {uid}" : "Failed To Create Nameplate");
+                MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create Nameplate for {uid}: {e}");
             }
         }
+
 
 
         // Duplicated GeneratePlate And Changed/Added A Bit Because I Was Lazy And Wanted A Specific Spot For Big Text -- You're just like me fr stop being lazy tho :p

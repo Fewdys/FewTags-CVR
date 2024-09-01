@@ -1,207 +1,207 @@
 ﻿using UnityEngine;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
+using System.Text;
 
 namespace FewTags.Utils
 {
     public enum AnimationType
     {
+        None,
         Rainbow,
         SmoothRainbow,
         LetterByLetter,
-        SmoothRainbowAndLetterByLetter,
-        RainbowAndLetterByLetter // New animation type
+        Bounce, // New animation type
     }
 
     public class AnimationManager : MonoBehaviour
     {
         public TextMeshProUGUI textMeshPro;
-        public AnimationType currentAnimationType;
-        public float animationSpeed = 0.1f; // Adjust speed as needed
-        public float gradientSpeed = 0.5f; // Speed of the gradient transition
-        public Color32[] rainbowColors;
+        public List<AnimationType> animationTypes = new List<AnimationType>();
+        public float animationSpeed = 1f; // Adjust speed as needed
+        public float rain = 2.5f;
+        private string originalText;
 
-        private Coroutine currentAnimation;
+        private Coroutine colorCoroutine;
+        private Coroutine contentCoroutine;
 
-        private void Start()
+        // Define rainbow colors
+        public Color32[] rainbowColors = new Color32[]
         {
+            new Color32(255, 0, 0, 255), // Red
+            new Color32(255, 127, 0, 255), // Orange
+            new Color32(255, 255, 0, 255), // Yellow
+            new Color32(0, 255, 0, 255), // Green
+            new Color32(0, 0, 255, 255), // Blue
+            new Color32(75, 0, 130, 255), // Indigo
+            new Color32(148, 0, 211, 255) // Violet
+        };
+
+        public void Start()
+        {
+            if (textMeshPro == null)
+            {
+                Debug.LogError("TextMeshProUGUI component is not assigned.");
+                return;
+            }
+
+            originalText = textMeshPro.text;
             StartAnimation();
         }
 
         public void StartAnimation()
         {
-            // Stop any currently running animation
-            if (currentAnimation != null)
+            bool hasColorAnimation = animationTypes.Contains(AnimationType.Rainbow) ||
+                                     animationTypes.Contains(AnimationType.SmoothRainbow) ||
+                                     animationTypes.Contains(AnimationType.Bounce);
+
+            bool hasContentAnimation = animationTypes.Contains(AnimationType.LetterByLetter);
+
+            if (hasColorAnimation)
             {
-                StopCoroutine(currentAnimation);
+                if (colorCoroutine != null)
+                {
+                    StopCoroutine(colorCoroutine);
+                }
+
+                if (animationTypes.Contains(AnimationType.Bounce))
+                {
+                    colorCoroutine = StartCoroutine(BounceAnimation());
+                }
+                else if (animationTypes.Contains(AnimationType.Rainbow))
+                {
+                    colorCoroutine = StartCoroutine(RainbowAnimation());
+                }
+                else if (animationTypes.Contains(AnimationType.SmoothRainbow))
+                {
+                    colorCoroutine = StartCoroutine(SmoothRainbowAnimation());
+                }
             }
 
-            switch (currentAnimationType)
+            if (hasContentAnimation)
             {
-                case AnimationType.Rainbow:
-                    currentAnimation = StartCoroutine(RainbowTagAnimation());
-                    break;
-                case AnimationType.SmoothRainbow:
-                    currentAnimation = StartCoroutine(SmoothRainbowAnimation());
-                    break;
-                case AnimationType.LetterByLetter:
-                    currentAnimation = StartCoroutine(LetterByLetterAnimation());
-                    break;
-                case AnimationType.SmoothRainbowAndLetterByLetter:
-                    currentAnimation = StartCoroutine(SmoothRainbowAndLetterByLetterAnimation());
-                    break;
-                case AnimationType.RainbowAndLetterByLetter:
-                    currentAnimation = StartCoroutine(RainbowAndLetterByLetterAnimation());
-                    break;
+                if (contentCoroutine != null)
+                {
+                    StopCoroutine(contentCoroutine);
+                }
+
+                contentCoroutine = StartCoroutine(LetterByLetterAnimation());
+            }
+            else
+            {
+                textMeshPro.text = originalText;
             }
         }
 
-        public IEnumerator RainbowTagAnimation()
+        private IEnumerator RainbowAnimation()
         {
+            float hueShiftSpeed = rain;
+            int colorCount = rainbowColors.Length;
+            float time = 0;
+            StringBuilder sb = new StringBuilder();
+
             while (true)
             {
-                for (int i = 0; i < textMeshPro.text.Length; i++)
-                {
-                    string coloredText = "";
-                    for (int j = 0; j < textMeshPro.text.Length; j++)
-                    {
-                        var color = rainbowColors[(i + j) % rainbowColors.Length];
-                        coloredText += $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{textMeshPro.text[j]}</color>";
-                    }
-                    textMeshPro.text = coloredText;
-                    yield return new WaitForSeconds(animationSpeed);
-                }
-            }
-        }
+                time += Time.deltaTime * hueShiftSpeed;
+                time %= 1.0f;
 
-        public IEnumerator SmoothRainbowAnimation()
-        {
-            float time = 0f;
-            while (true)
-            {
-                time += Time.deltaTime * gradientSpeed;
-                string coloredText = "";
-                float gradientPosition = time % 1f; // Loop the gradient
+                sb.Clear();
 
-                for (int i = 0; i < textMeshPro.text.Length; i++)
+                for (int i = 0; i < originalText.Length; i++)
                 {
-                    float position = (i / (float)textMeshPro.text.Length + gradientPosition) % 1f;
-                    Color color = Color.HSVToRGB(position, 1f, 1f);
-                    coloredText += $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{textMeshPro.text[i]}</color>";
+                    int colorIndex = (i + Mathf.FloorToInt(time * colorCount)) % colorCount;
+                    Color32 color = rainbowColors[colorIndex];
+                    sb.Append($"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{originalText[i]}</color>");
                 }
 
-                textMeshPro.text = coloredText;
+                textMeshPro.text = sb.ToString();
                 yield return null;
             }
         }
 
-        public IEnumerator LetterByLetterAnimation()
+        private IEnumerator SmoothRainbowAnimation()
         {
-            string fullText = textMeshPro.text;
-            while (true)
-            {
-                // Remove letters one by one, keeping at least one letter
-                for (int i = fullText.Length; i > 1; i--)
-                {
-                    textMeshPro.text = fullText.Substring(0, i - 1);
-                    yield return new WaitForSeconds(animationSpeed);
-                }
-
-                // Ensure at least one letter is visible
-                textMeshPro.text = fullText.Substring(0, 1);
-                yield return new WaitForSeconds(animationSpeed);
-
-                // Add back letters one by one
-                for (int i = 1; i <= fullText.Length; i++)
-                {
-                    textMeshPro.text = fullText.Substring(0, i);
-                    yield return new WaitForSeconds(animationSpeed);
-                }
-            }
-        }
-
-        public IEnumerator SmoothRainbowAndLetterByLetterAnimation()
-        {
-            string fullText = textMeshPro.text;
+            float t = 0;
+            float hueShiftSpeed = animationSpeed / 8f;
+            StringBuilder sb = new StringBuilder();
 
             while (true)
             {
-                // Remove letters one by one, keeping at least one letter
-                for (int i = fullText.Length; i > 1; i--)
+                t += Time.deltaTime * hueShiftSpeed;
+                if (t > 1) t -= 1;
+
+                sb.Clear();
+
+                for (int i = 0; i < originalText.Length; i++)
                 {
-                    textMeshPro.text = fullText.Substring(0, i - 1);
-                    ApplySmoothRainbowEffect();
-                    yield return new WaitForSeconds(animationSpeed);
+                    float hue = (t + i * 1.0f / originalText.Length) % 1.0f;
+                    Color color = Color.HSVToRGB(hue, 1.0f, 1.0f);
+                    sb.Append($"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{originalText[i]}</color>");
                 }
 
-                // Ensure at least one letter is visible
-                textMeshPro.text = fullText.Substring(0, 1);
-                ApplySmoothRainbowEffect();
-                yield return new WaitForSeconds(animationSpeed);
-
-                // Add back letters one by one
-                for (int i = 1; i <= fullText.Length; i++)
-                {
-                    textMeshPro.text = fullText.Substring(0, i);
-                    ApplySmoothRainbowEffect();
-                    yield return new WaitForSeconds(animationSpeed);
-                }
+                textMeshPro.text = sb.ToString();
+                yield return null;
             }
         }
 
-        public IEnumerator RainbowAndLetterByLetterAnimation()
+        private IEnumerator LetterByLetterAnimation()
         {
-            string fullText = textMeshPro.text;
-            int textLength = fullText.Length;
+            float delay = 0.225f;
+            StringBuilder sb = new StringBuilder();
 
             while (true)
             {
-                // Remove letters one by one
-                for (int i = textLength; i > 1; i--)
+                for (int i = originalText.Length; i > 0; i--)
                 {
-                    textMeshPro.text = fullText.Substring(0, i - 1);
-                    ApplyRainbowEffect();
-                    yield return new WaitForSeconds(animationSpeed);
+                    sb.Clear();
+                    sb.Append(originalText.Substring(0, i));
+                    textMeshPro.text = sb.ToString();
+                    yield return new WaitForSeconds(delay);
                 }
 
-                // Ensure at least one letter is visible
-                textMeshPro.text = fullText.Substring(0, 1);
-                ApplyRainbowEffect();
-                yield return new WaitForSeconds(animationSpeed);
-
-                // Add back letters one by one
-                for (int i = 1; i <= textLength; i++)
+                for (int i = 0; i <= originalText.Length; i++)
                 {
-                    textMeshPro.text = fullText.Substring(0, i);
-                    ApplyRainbowEffect();
-                    yield return new WaitForSeconds(animationSpeed);
+                    sb.Clear();
+                    sb.Append(originalText.Substring(0, i));
+                    textMeshPro.text = sb.ToString();
+                    yield return new WaitForSeconds(delay);
                 }
             }
         }
 
-        public void ApplyRainbowEffect()
+        private IEnumerator BounceAnimation()
         {
-            float time = Time.time * gradientSpeed;
-            string coloredText = "";
-            for (int i = 0; i < textMeshPro.text.Length; i++)
-            {
-                Color color = Color.HSVToRGB((time + i / (float)textMeshPro.text.Length) % 1f, 1f, 1f);
-                coloredText += $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{textMeshPro.text[i]}</color>";
-            }
-            textMeshPro.text = coloredText;
-        }
+            float bounceSpeed = animationSpeed;
+            float delay = 0.007f;
+            int length = originalText.Length;
+            string redColorHex = ColorUtility.ToHtmlStringRGB(Color.red);
+            StringBuilder sb = new StringBuilder();
 
-        public void ApplySmoothRainbowEffect()
-        {
-            float time = Time.time * gradientSpeed;
-            string coloredText = "";
-            for (int i = 0; i < textMeshPro.text.Length; i++)
+            while (true)
             {
-                Color color = Color.HSVToRGB((time + i / (float)textMeshPro.text.Length) % 1f, 1f, 1f);
-                coloredText += $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{textMeshPro.text[i]}</color>";
+                for (int i = 0; i < length; i++)
+                {
+                    sb.Clear();
+                    for (int j = 0; j < length; j++)
+                    {
+                        sb.Append(j == i ? $"<color=#{redColorHex}>{originalText[j]}</color>" : originalText[j]);
+                    }
+                    textMeshPro.text = sb.ToString();
+                    yield return new WaitForSeconds(delay);
+                }
+
+                for (int i = length - 1; i >= 0; i--)
+                {
+                    sb.Clear();
+                    for (int j = 0; j < length; j++)
+                    {
+                        sb.Append(j == i ? $"<color=#{redColorHex}>{originalText[j]}</color>" : originalText[j]);
+                    }
+                    textMeshPro.text = sb.ToString();
+                    yield return new WaitForSeconds(delay);
+                }
             }
-            textMeshPro.text = coloredText;
         }
     }
-
 }
