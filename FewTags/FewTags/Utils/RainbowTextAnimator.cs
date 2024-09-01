@@ -12,7 +12,7 @@ namespace FewTags.Utils
         Rainbow,
         SmoothRainbow,
         LetterByLetter,
-        Bounce, // New animation type
+        CYLN, // New animation type
     }
 
     public class AnimationManager : MonoBehaviour
@@ -52,7 +52,7 @@ namespace FewTags.Utils
 
         public void StartAnimation()
         {
-            bool hasColorAnimation = animationTypes.Contains(AnimationType.Rainbow) || animationTypes.Contains(AnimationType.SmoothRainbow) || animationTypes.Contains(AnimationType.Bounce);
+            bool hasColorAnimation = animationTypes.Contains(AnimationType.Rainbow) || animationTypes.Contains(AnimationType.SmoothRainbow) || animationTypes.Contains(AnimationType.CYLN);
 
             bool hasContentAnimation = animationTypes.Contains(AnimationType.LetterByLetter);
 
@@ -63,7 +63,7 @@ namespace FewTags.Utils
                     StopCoroutine(colorCoroutine);
                 }
 
-                if (animationTypes.Contains(AnimationType.Bounce))
+                if (animationTypes.Contains(AnimationType.CYLN))
                 {
                     colorCoroutine = StartCoroutine(BounceAnimation());
                 }

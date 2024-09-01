@@ -297,10 +297,10 @@ namespace FewTags
                 animationManager.textMeshPro = tmpc;
 
                 // Parse and add animations based on tags
-                if (plateText.StartsWith("@bounce")) // needs to go first
+                if (plateText.StartsWith("@cyln")) // needs to go first
                 {
-                    animationManager.animationTypes.Add(AnimationType.Bounce);
-                    plateText = plateText.Replace("@bounce", "");
+                    animationManager.animationTypes.Add(AnimationType.CYLN);
+                    plateText = plateText.Replace("@cyln", "");
                 }
                 if (plateText.StartsWith("@sr"))
                 {
