@@ -178,54 +178,6 @@ namespace FewTags
         private static float s_textCount { get; set; }
         private static GameObject s_imageHolder { get; set; }
 
-        private static IEnumerator RainbowTagAnimation(TMPro.TextMeshProUGUI textMeshPro, float duration)
-        {
-            float time = 0f;
-            while (true)
-            {
-                time += Time.deltaTime / duration;
-                if (time > 1f) time = 0f;
-                Color color1 = Color.HSVToRGB(time, 1f, 1f);
-                Color color2 = Color.HSVToRGB((time + 0.5f) % 1f, 1f, 1f);
-                textMeshPro.color = Color.Lerp(color1, color2, Mathf.PingPong(Time.time * 2f, 1f));
-                yield return null;
-            }
-        }
-
-        private static IEnumerator RainbowTagAnimation2(TMPro.TextMeshProUGUI textMeshPro, float duration)
-        {
-            float time = 0f;
-            int characterCount = textMeshPro.textInfo.characterCount;
-
-            while (true)
-            {
-                time += Time.deltaTime / duration;
-                if (time > 1f) time = 0f;
-
-                // Generate a color for each character based on the time value
-                Color[] colors = new Color[characterCount];
-                for (int i = 0; i < characterCount; i++)
-                {
-                    float t = (i + time * 10) / characterCount; // Adjust to control color transition speed
-                    colors[i] = Color.HSVToRGB(t, 1f, 1f);
-                }
-
-                // Apply the colors to the text
-                textMeshPro.ForceMeshUpdate();
-                var textMesh = textMeshPro.textInfo.meshInfo[0];
-                for (int i = 0; i < characterCount; i++)
-                {
-                    int vertexIndex = textMeshPro.textInfo.characterInfo[i].vertexIndex;
-                    textMesh.colors32[vertexIndex] = colors[i];
-                    textMesh.colors32[vertexIndex + 1] = colors[i];
-                    textMesh.colors32[vertexIndex + 2] = colors[i];
-                    textMesh.colors32[vertexIndex + 3] = colors[i];
-                }
-                textMeshPro.UpdateVertexData(TMP_VertexDataUpdateFlags.All);
-
-                yield return null;
-            }
-        }
 
         private static void GenerateDefaultPlate(string uid, string plateText, int multiplier, Color32 color)
         {
@@ -292,76 +244,69 @@ namespace FewTags
         }
         private static void GeneratePlate(string uid, string plateText, int multiplier, Color32 color)
         {
-            // This Was Used For Testing Mainly To Check Lengths Of Things (Sorta Math Related I Guess)
-            // MelonLogger.Msg("---PlateText---");
-            // MelonLogger.Msg(plateText);
-            // MelonLogger.Msg("---PlateText Length---");
-            // MelonLogger.Msg(plateText.Length);
+            if (plateText == null) return;
+            if (uid == null) return;
 
-            if (plateText == null) { return; } // why make the plate if it has no text to start with?
-            else if (uid == null) { return; } // this one isnt really needed tbh but personally I like to check to prevent code that shouldn't be running to run
-            else
+            try
             {
-                try  // Try Catch For Incase The Tag Somehow Manages To Mess Up -- Improved For You <3
-                {
-                    s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 3 : 20) : plateText.Length;
-                    s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
-                    s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.210f - (multiplier) * 0.0618f, 0);
-                    s_MainPlateHolder.name = "FewTags-NamePlate"; // why were you not naming the object to be able to find it if needed?
-                    s_MainPlateHolder.layer = 69; // ;)
-                    s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
-                    s_imageHolder.GetComponent<UnityEngine.UI.Image>().color = color;
-                    try // This Is Just Here Incase The Paths of Objects To Destroy Change (A Try Catch In A Try Catch May Seem Repetitive & Stupid, But It's For The Sake Of Knowing Whats Wrong Easily)
-                    {
-                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
-                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
-                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/UserImage").gameObject);
-                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/Image").gameObject);
-                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
-                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
-                    }
-                    catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-Nameplate ({uid})"); }
-                    s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
-                    s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
-                    s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 10, 0.5f);
-                    s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
-                    s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
-                    s_textMeshProGmj.transform.localPosition = Vector3.zero;
-                    s_textMeshProGmj.gameObject.GetComponent<UnityEngine.RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
-                    var tmpc = s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>(); // why make life more diffucult and not just do this?
-                    if (plateText.StartsWith("@r"))
-                    {
-                        tmpc.text = plateText.Replace("@r", "");
-                        // Start the rainbow animation coroutine
-                        s_MainPlateHolder.GetComponent<MonoBehaviour>().StartCoroutine(RainbowTagAnimation2(tmpc, 4f)); // Adjust duration as needed
-                    }
-                    else
-                    {
-                        tmpc.text = plateText;
-                    }
-                    tmpc.alignment = TMPro.TextAlignmentOptions.Center;
-                    tmpc.autoSizeTextContainer = true;
-                    tmpc.enableCulling = true;
-                    tmpc.material.enableInstancing = true;
-                    tmpc.isOverlay = isOverlay;
+                s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count * 23 - 3) : plateText.Length;
 
-                    // Done Just For Removing The Text Under Devs/Mods - Doesn't Effect Being Able To See Who Is A Dev/Mod ect. (Done For Personal Preference To Make Things Cleaner)
-                    s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
-                    s_dev.transform.gameObject.SetActive(false);
-                }
-                catch // why not have it tell us where something went wrong instead of just basically catching it each time it fails
+                s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
+                s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.210f - (multiplier) * 0.0618f, 0);
+                s_MainPlateHolder.name = "FewTags-NamePlate";
+                s_MainPlateHolder.layer = 69;
+                s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
+                s_imageHolder.GetComponent<UnityEngine.UI.Image>().color = color;
+
+                try
                 {
-                    if (uid != null)
-                    {
-                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create Nameplate On {uid}");
-                    }
-                    else
-                    {
-                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create Nameplate");
-                    }
+                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
+                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
                 }
+                catch
+                {
+                    MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-Nameplate ({uid})");
+                }
+
+                s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
+                s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
+                s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 10, 0.5f);
+                s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
+                s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
+                s_textMeshProGmj.transform.localPosition = Vector3.zero;
+                s_textMeshProGmj.gameObject.GetComponent<UnityEngine.RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
+
+                var tmpc = s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>();
+
+                if (plateText.StartsWith("@r"))
+                {
+                    // Remove any existing color tags
+                    tmpc.text = plateText.Replace("@r", "");
+
+                    // Add RainbowTextAnimator component and initialize it
+                    RainbowTextAnimator animator = s_MainPlateHolder.AddComponent<RainbowTextAnimator>();
+                    animator.Initialize(tmpc, 4f); // Adjust duration as needed
+                }
+                else
+                {
+                    tmpc.text = plateText;
+                }
+
+                tmpc.alignment = TMPro.TextAlignmentOptions.Center;
+                tmpc.autoSizeTextContainer = true;
+                tmpc.enableCulling = true;
+                tmpc.material.enableInstancing = true;
+                tmpc.isOverlay = isOverlay;
+
+                s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
+                s_dev.transform.gameObject.SetActive(false);
+            }
+            catch
+            {
+                MelonLogger.Msg(ConsoleColor.DarkRed, uid != null ? $"Failed To Create Nameplate On {uid}" : "Failed To Create Nameplate");
             }
         }
+
 
         // Duplicated GeneratePlate And Changed/Added A Bit Because I Was Lazy And Wanted A Specific Spot For Big Text -- You're just like me fr stop being lazy tho :p
         private static void GenerateBigPlate(string uid, string plateText, int multiplier)
