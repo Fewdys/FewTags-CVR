@@ -302,11 +302,6 @@ namespace FewTags
                     animationManager.animationTypes.Add(AnimationType.CYLN);
                     plateText = plateText.Replace("@cyln", "");
                 }
-                if (plateText.StartsWith("@sr"))
-                {
-                    animationManager.animationTypes.Add(AnimationType.SmoothRainbow);
-                    plateText = plateText.Replace("@sr", "");
-                }
                 if (plateText.StartsWith("@letter"))
                 {
                     animationManager.animationTypes.Add(AnimationType.LetterByLetter);
@@ -316,6 +311,11 @@ namespace FewTags
                 {
                     animationManager.animationTypes.Add(AnimationType.Rainbow);
                     plateText = plateText.Replace("@rain", "");
+                }
+                if (plateText.StartsWith("@sr"))
+                {
+                    animationManager.animationTypes.Add(AnimationType.SmoothRainbow);
+                    plateText = plateText.Replace("@sr", "");
                 }
 
                 // Set the final text after removing the tags
