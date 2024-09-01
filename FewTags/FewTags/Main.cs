@@ -284,37 +284,33 @@ namespace FewTags
 
                 // Configure the TextMeshPro component for the selected animation
                 var animationManager = s_MainPlateHolder.AddComponent<AnimationManager>();
+                animationManager.textMeshPro = tmpc;
 
                 // Directly configure animation manager based on animation type
                 switch (animationType)
                 {
                     case "@r":
                         tmpc.text = plateText;
-                        animationManager.textMeshPro = tmpc;
                         animationManager.currentAnimationType = AnimationType.Rainbow;
                         animationManager.StartCoroutine(animationManager.RainbowTagAnimation());
                         break;
                     case "@sr":
                         tmpc.text = plateText;
-                        animationManager.textMeshPro = tmpc;
                         animationManager.currentAnimationType = AnimationType.SmoothRainbow;
                         animationManager.StartCoroutine(animationManager.SmoothRainbowAnimation());
                         break;
                     case "@l":
                         tmpc.text = plateText;
-                        animationManager.textMeshPro = tmpc;
                         animationManager.currentAnimationType = AnimationType.LetterByLetter;
                         animationManager.StartCoroutine(animationManager.LetterByLetterAnimation());
                         break;
                     case "@rl":
                         tmpc.text = plateText;
-                        animationManager.textMeshPro = tmpc;
                         animationManager.currentAnimationType = AnimationType.RainbowAndLetterByLetter;
                         animationManager.StartCoroutine(animationManager.RainbowAndLetterByLetterAnimation());
                         break;
                     case "@srl":
                         tmpc.text = plateText;
-                        animationManager.textMeshPro = tmpc;
                         animationManager.currentAnimationType = AnimationType.SmoothRainbowAndLetterByLetter;
                         animationManager.StartCoroutine(animationManager.SmoothRainbowAndLetterByLetterAnimation());
                         break;
