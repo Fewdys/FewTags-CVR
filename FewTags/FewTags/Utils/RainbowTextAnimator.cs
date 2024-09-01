@@ -52,9 +52,7 @@ namespace FewTags.Utils
 
         public void StartAnimation()
         {
-            bool hasColorAnimation = animationTypes.Contains(AnimationType.Rainbow) ||
-                                     animationTypes.Contains(AnimationType.SmoothRainbow) ||
-                                     animationTypes.Contains(AnimationType.Bounce);
+            bool hasColorAnimation = animationTypes.Contains(AnimationType.Rainbow) || animationTypes.Contains(AnimationType.SmoothRainbow) || animationTypes.Contains(AnimationType.Bounce);
 
             bool hasContentAnimation = animationTypes.Contains(AnimationType.LetterByLetter);
 
