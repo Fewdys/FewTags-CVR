@@ -278,18 +278,50 @@ namespace FewTags
 
                 var tmpc = s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>();
 
-                if (plateText.StartsWith("@r"))
-                {
-                    // Remove any existing color tags
-                    tmpc.text = plateText.Replace("@r", "");
+                // Determine which animation to use based on plateText prefix
+                string animationType = plateText.Substring(0, 4);
+                plateText = plateText.Substring(4); // Remove the prefix
 
-                    // Add RainbowTextAnimator component and initialize it
-                    RainbowTextAnimator animator = s_MainPlateHolder.AddComponent<RainbowTextAnimator>();
-                    animator.Initialize(tmpc, 4f); // Adjust duration as needed
-                }
-                else
+                // Configure the TextMeshPro component for the selected animation
+                var animationManager = s_MainPlateHolder.AddComponent<AnimationManager>();
+
+                // Directly configure animation manager based on animation type
+                switch (animationType)
                 {
-                    tmpc.text = plateText;
+                    case "@r":
+                        tmpc.text = plateText;
+                        animationManager.textMeshPro = tmpc;
+                        animationManager.currentAnimationType = AnimationType.Rainbow;
+                        animationManager.StartCoroutine(animationManager.RainbowTagAnimation());
+                        break;
+                    case "@sr":
+                        tmpc.text = plateText;
+                        animationManager.textMeshPro = tmpc;
+                        animationManager.currentAnimationType = AnimationType.SmoothRainbow;
+                        animationManager.StartCoroutine(animationManager.SmoothRainbowAnimation());
+                        break;
+                    case "@l ":
+                        tmpc.text = plateText;
+                        animationManager.textMeshPro = tmpc;
+                        animationManager.currentAnimationType = AnimationType.LetterByLetter;
+                        animationManager.StartCoroutine(animationManager.LetterByLetterAnimation());
+                        break;
+                    case "@rl":
+                        tmpc.text = plateText;
+                        animationManager.textMeshPro = tmpc;
+                        animationManager.currentAnimationType = AnimationType.RainbowAndLetterByLetter;
+                        animationManager.StartCoroutine(animationManager.RainbowAndLetterByLetterAnimation());
+                        break;
+                    case "@srl":
+                        tmpc.text = plateText;
+                        animationManager.textMeshPro = tmpc;
+                        animationManager.currentAnimationType = AnimationType.SmoothRainbowAndLetterByLetter;
+                        animationManager.StartCoroutine(animationManager.SmoothRainbowAndLetterByLetterAnimation());
+                        break;
+                    default:
+                        tmpc.text = plateText;
+                        // Optional: Default animation or no animation
+                        break;
                 }
 
                 tmpc.alignment = TMPro.TextAlignmentOptions.Center;
