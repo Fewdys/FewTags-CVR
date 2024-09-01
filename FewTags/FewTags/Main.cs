@@ -266,21 +266,12 @@ namespace FewTags
                     s_textMeshProGmj.transform.localPosition = Vector3.zero;
                     s_textMeshProGmj.gameObject.GetComponent<UnityEngine.RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
                     var tmpc = s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>(); // why make life more diffucult and not just do this?
+                    tmpc.text = plateText;
                     tmpc.alignment = TMPro.TextAlignmentOptions.Center;
                     tmpc.autoSizeTextContainer = true;
                     tmpc.enableCulling = true;
                     tmpc.material.enableInstancing = true;
                     tmpc.isOverlay = isOverlay;
-                    if (plateText.StartsWith("@r"))
-                    {
-                        tmpc.text = plateText.Replace("@r", "");
-                        // Start the rainbow animation coroutine
-                        s_MainPlateHolder.GetComponent<MonoBehaviour>().StartCoroutine(RainbowTagAnimation2(tmpc, 4f)); // Adjust duration as needed
-                    }
-                    else
-                    {
-                        tmpc.text = plateText;
-                    }
 
                     // Done Just For Removing The Text Under Devs/Mods - Doesn't Effect Being Able To See Who Is A Dev/Mod ect. (Done For Personal Preference To Make Things Cleaner)
                     s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
@@ -338,7 +329,16 @@ namespace FewTags
                     s_textMeshProGmj.transform.localPosition = Vector3.zero;
                     s_textMeshProGmj.gameObject.GetComponent<UnityEngine.RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
                     var tmpc = s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>(); // why make life more diffucult and not just do this?
-                    tmpc.text = plateText;
+                    if (plateText.StartsWith("@r"))
+                    {
+                        tmpc.text = plateText.Replace("@r", "");
+                        // Start the rainbow animation coroutine
+                        s_MainPlateHolder.GetComponent<MonoBehaviour>().StartCoroutine(RainbowTagAnimation2(tmpc, 4f)); // Adjust duration as needed
+                    }
+                    else
+                    {
+                        tmpc.text = plateText;
+                    }
                     tmpc.alignment = TMPro.TextAlignmentOptions.Center;
                     tmpc.autoSizeTextContainer = true;
                     tmpc.enableCulling = true;
