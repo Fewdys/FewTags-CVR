@@ -3,6 +3,9 @@ using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
+using MelonLoader;
+using System.Linq;
 
 namespace FewTags.Utils
 {
@@ -53,7 +56,6 @@ namespace FewTags.Utils
         public void StartAnimation()
         {
             bool hasColorAnimation = animationTypes.Contains(AnimationType.Rainbow) || animationTypes.Contains(AnimationType.SmoothRainbow) || animationTypes.Contains(AnimationType.CYLN);
-
             bool hasContentAnimation = animationTypes.Contains(AnimationType.LetterByLetter);
 
             if (hasColorAnimation)
@@ -105,12 +107,23 @@ namespace FewTags.Utils
                 time %= 1.0f;
 
                 sb.Clear();
+                var parts = ParseTextWithTags(originalText);
 
-                for (int i = 0; i < originalText.Length; i++)
+                foreach (var part in parts)
                 {
-                    int colorIndex = (i + Mathf.FloorToInt(time * colorCount)) % colorCount;
-                    Color32 color = rainbowColors[colorIndex];
-                    sb.Append($"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{originalText[i]}</color>");
+                    if (part.IsStyled)
+                    {
+                        sb.Append(part.Text);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < part.Text.Length; i++)
+                        {
+                            int colorIndex = (i + Mathf.FloorToInt(time * colorCount)) % colorCount;
+                            Color32 color = rainbowColors[colorIndex];
+                            sb.Append($"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{part.Text[i]}</color>");
+                        }
+                    }
                 }
 
                 textMeshPro.text = sb.ToString();
@@ -123,6 +136,7 @@ namespace FewTags.Utils
             float t = 0;
             float hueShiftSpeed = animationSpeed / 8f;
             StringBuilder sb = new StringBuilder();
+            var parts = ParseTextWithTags(originalText);
 
             while (true)
             {
@@ -131,11 +145,21 @@ namespace FewTags.Utils
 
                 sb.Clear();
 
-                for (int i = 0; i < originalText.Length; i++)
+                foreach (var part in parts)
                 {
-                    float hue = (t + i * 1.0f / originalText.Length) % 1.0f;
-                    Color color = Color.HSVToRGB(hue, 1.0f, 1.0f);
-                    sb.Append($"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{originalText[i]}</color>");
+                    if (part.IsStyled)
+                    {
+                        sb.Append(part.Text);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < part.Text.Length; i++)
+                        {
+                            float hue = (t + i * 1.0f / part.Text.Length) % 1.0f;
+                            Color color = Color.HSVToRGB(hue, 1.0f, 1.0f);
+                            sb.Append($"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{part.Text[i]}</color>");
+                        }
+                    }
                 }
 
                 textMeshPro.text = sb.ToString();
@@ -168,38 +192,124 @@ namespace FewTags.Utils
             }
         }
 
+        // Parse the text to separate styled and plain text
+        private List<TextPart> ParseTextWithTags(string text)
+        {
+            var parts = new List<TextPart>();
+            var matches = Regex.Matches(text, @"<[^>]+>|[^<]+");
+
+            foreach (Match match in matches)
+            {
+                var part = new TextPart
+                {
+                    Text = match.Value,
+                    IsStyled = match.Value.StartsWith("<") && match.Value.EndsWith(">"),
+                };
+                parts.Add(part);
+                //MelonLogger.Msg($"Part: {part.Text}, IsStyled: {part.IsStyled}");
+            }
+
+            return parts;
+        }
+
+
+
+
         private IEnumerator BounceAnimation()
         {
             float bounceSpeed = animationSpeed;
             float delay = 0.007f;
             int length = originalText.Length;
             string redColorHex = ColorUtility.ToHtmlStringRGB(Color.red);
-            StringBuilder sb = new StringBuilder();
+            var parts = ParseTextWithTags(originalText);
+
+            // Extract visible text length, excluding tags
+            int visibleTextLength = 0;
+            foreach (var part in parts)
+            {
+                if (!part.IsStyled)
+                {
+                    visibleTextLength += part.Text.Length;
+                }
+            }
 
             while (true)
             {
-                for (int i = 0; i < length; i++)
+                for (int i = 0; i < visibleTextLength; i++)
                 {
-                    sb.Clear();
-                    for (int j = 0; j < length; j++)
+                    StringBuilder sb = new StringBuilder();
+
+                    int charIndex = 0;
+
+                    foreach (var part in parts)
                     {
-                        sb.Append(j == i ? $"<color=#{redColorHex}>{originalText[j]}</color>" : originalText[j]);
+                        if (part.IsStyled)
+                        {
+                            sb.Append(part.Text);
+                        }
+                        else
+                        {
+                            // Only animate visible characters
+                            for (int j = 0; j < part.Text.Length; j++)
+                            {
+                                if (charIndex == i)
+                                {
+                                    sb.Append($"<color=#{redColorHex}>{part.Text[j]}</color>");
+                                }
+                                else
+                                {
+                                    sb.Append(part.Text[j]);
+                                }
+                                charIndex++;
+                            }
+                        }
                     }
+
                     textMeshPro.text = sb.ToString();
                     yield return new WaitForSeconds(delay);
                 }
 
-                for (int i = length - 1; i >= 0; i--)
+                for (int i = visibleTextLength - 1; i >= 0; i--)
                 {
-                    sb.Clear();
-                    for (int j = 0; j < length; j++)
+                    StringBuilder sb = new StringBuilder();
+
+                    int charIndex = 0;
+
+                    foreach (var part in parts)
                     {
-                        sb.Append(j == i ? $"<color=#{redColorHex}>{originalText[j]}</color>" : originalText[j]);
+                        if (part.IsStyled)
+                        {
+                            sb.Append(part.Text);
+                        }
+                        else
+                        {
+                            // Only animate visible characters
+                            for (int j = 0; j < part.Text.Length; j++)
+                            {
+                                if (charIndex == i)
+                                {
+                                    sb.Append($"<color=#{redColorHex}>{part.Text[j]}</color>");
+                                }
+                                else
+                                {
+                                    sb.Append(part.Text[j]);
+                                }
+                                charIndex++;
+                            }
+                        }
                     }
+
                     textMeshPro.text = sb.ToString();
                     yield return new WaitForSeconds(delay);
                 }
             }
+        }
+
+        // Helper class to store text parts
+        private class TextPart
+        {
+            public string Text { get; set; }
+            public bool IsStyled { get; set; }
         }
     }
 }
