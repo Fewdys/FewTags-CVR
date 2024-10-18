@@ -45,7 +45,7 @@ namespace FewTags.Utils
         {
             if (textMeshPro == null)
             {
-                Debug.LogError("TextMeshProUGUI component is not assigned.");
+                MelonLogger.Msg("TextMeshPro component is not assigned.");
                 return;
             }
 
