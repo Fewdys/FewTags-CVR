@@ -20,7 +20,7 @@ namespace FewTags.Utils
 
     public class AnimationManager : MonoBehaviour
     {
-        public TextMeshProUGUI textMeshPro;
+        public TMP_Text textMeshPro;
         public List<AnimationType> animationTypes = new List<AnimationType>();
         public float animationSpeed = 1f; // Adjust speed as needed
         public float rain = 2.5f;

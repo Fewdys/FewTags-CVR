@@ -284,7 +284,7 @@ namespace FewTags
                 s_textMeshProGmj.transform.localPosition = Vector3.zero;
                 s_textMeshProGmj.GetComponent<RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
 
-                var tmpc = s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>();
+                var tmpc = s_textMeshProGmj.GetComponent<TMP_Text>();
 
                 // Set TextMeshPro properties
                 tmpc.alignment = TMPro.TextAlignmentOptions.Center;
