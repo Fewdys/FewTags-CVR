@@ -24,7 +24,7 @@ namespace FewTags.Utils
         public List<AnimationType> animationTypes = new List<AnimationType>();
         public float animationSpeed = 1f; // Adjust speed as needed
         public float rain = 2.5f;
-        private string originalText;
+        public string originalText { get; set; }
 
         private Coroutine colorCoroutine;
         private Coroutine contentCoroutine;
@@ -51,6 +51,27 @@ namespace FewTags.Utils
 
             originalText = textMeshPro.text;
             StartAnimation();
+        }
+
+        private void OnEnable()
+        {
+            StartAnimation(); // Restart animations
+        }
+
+        private void OnDisable()
+        {
+            // Optionally, you can stop animations when disabled
+            if (colorCoroutine != null)
+            {
+                StopCoroutine(colorCoroutine);
+                colorCoroutine = null; // Clear reference
+            }
+
+            if (contentCoroutine != null)
+            {
+                StopCoroutine(contentCoroutine);
+                contentCoroutine = null; // Clear reference
+            }
         }
 
         public void StartAnimation()
