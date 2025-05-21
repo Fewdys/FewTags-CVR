@@ -24,3 +24,8 @@
 /FewTags/.vs/slnx.sqlite
 /FewTags/.vs
 *.json
+/FewTags/FewTags/bin/Debug/0Harmony.dll
+*.dll
+/FewTags/FewTags/bin/Debug/Assembly-CSharp.dll
+/FewTags/FewTags/bin/Debug/DarkRift.Client.dll
+/FewTags/FewTags/bin/Debug/DarkRift.dll
