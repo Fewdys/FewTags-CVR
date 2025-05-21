@@ -8,11 +8,13 @@ using FewTags.Utils;
 using Harmony;
 using MelonLoader;
 using Newtonsoft.Json;
+using SimpleJSON;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Policy;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
@@ -97,7 +99,7 @@ namespace FewTags
         {
             if (Input.GetKeyDown(KeyCode.Slash))
             {
-                if (CVR_MenuManager.Instance.quickMenuCollider.enabled == true || ViewManager.Instance.isGameMenuOpen() == true) { return; } // we don't wanna accidently reload tags while menu's are open
+                if (CVR_MenuManager.Instance.quickMenuCollider.enabled == true || ViewManager.Instance.IsAnyMenuOpen == true) { return; } // we don't wanna accidently reload tags while menu's are open
                 else
                 {
                     ReloadString();
@@ -109,7 +111,7 @@ namespace FewTags
             // Overlay Toggle
             if (Input.GetKey(KeyCode.RightShift) && Input.GetKeyDown(KeyCode.O))
             {
-                if (CVR_MenuManager.Instance.quickMenuCollider.enabled == true || ViewManager.Instance.isGameMenuOpen() == true) { return; }
+                if (CVR_MenuManager.Instance.quickMenuCollider.enabled == true || ViewManager.Instance.IsAnyMenuOpen == true) { return; }
                 else
                 {
                     isOverlay = !isOverlay;
@@ -419,22 +421,68 @@ namespace FewTags
             catch { MelonLogger.Msg(ConsoleColor.DarkRed, "Error Downloading Tags (Likely A Github Issue or A Internet/Service Issue)"); } // see like this you gave a reason for a possible issue. you should do that way more often when doing try catch
 
         }
-
-        // Will Rejoin The Current World You Are In For You
-        public static void RejoinWorld()
+        private static void DownloadString2()
         {
-            var id = MetaPort.Instance.CurrentWorldId.ToString() + ":" + MetaPort.Instance.CurrentInstanceId.ToString();
-            string[] parts = id.Split(new[] { ":" }, StringSplitOptions.None);
-            string instanceid = parts[1].ToString();
-            string worldid = parts[0].ToString();
             try
             {
-                Instances.GetInstanceJoinTokenTask(instanceid, worldid);
+                using (WebClient wc = new WebClient())
+                {
+                    s_rawTags = wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/refs/heads/main/FewTags-CVR.json");
+
+                    if (string.IsNullOrEmpty(s_rawTags))
+                    {
+                        return;
+                    }
+
+                    JSONNode jsonNode = JSON.Parse(s_rawTags);
+                    if (jsonNode == null)
+                    {
+                        return;
+                    }
+
+                    s_tags = new Json._Tags { records = new List<Json.User>() };
+
+                    foreach (JSONNode record in jsonNode["records"].AsArray)
+                    {
+                        List<string> tagsList = new List<string>();
+                        foreach (JSONNode tag in record["NamePlatesText"].AsArray)
+                        {
+                            tagsList.Add(tag.Value);
+                        }
+
+                        List<string> bigtagsList = new List<string>();
+                        foreach (JSONNode tag in record["BigPlatesText"].AsArray)
+                        {
+                            bigtagsList.Add(tag.Value);
+                        }
+
+                        int[] colorArray = null;
+
+                        if (record["Color"] != null && record["Color"].Count > 0)
+                        {
+                            colorArray = new int[record["Color"].Count];
+                            for (int i = 0; i < record["Color"].Count; i++)
+                            {
+                                colorArray[i] = record["Color"][i].AsInt;
+                            }
+                        }
+
+                        Json.User tagEntry = new Json.User
+                        {
+                            id = record["id"].AsInt,
+                            UserId = record["UserID"],
+                            NamePlatesText = tagsList.ToArray(),
+                            BigPlatesText = tagsList.ToArray(),
+                            Color = colorArray,
+                        };
+
+                        s_tags.records.Add(tagEntry);
+                    }
+                    return;
+                }
             }
-            catch
-            {
-                MelonLogger.Msg(System.ConsoleColor.Red, "Failed To Join World: " + worldid + ":" + instanceid);
-            }
+            catch { MelonLogger.Msg(ConsoleColor.DarkRed, "Error Downloading Tags (Likely A Github Issue or A Internet/Service Issue)"); } // see like this you gave a reason for a possible issue. you should do that way more often when doing try catch
+
         }
     }
 }

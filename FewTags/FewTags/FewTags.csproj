@@ -33,16 +33,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\..\..\..\..\steam\steamapps\common\ChilloutVR\BepInEx\core\0Harmony.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\ChilloutVR\MelonLoader\net6\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\..\steam\steamapps\common\ChilloutVR\ChilloutVR_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\ChilloutVR\ChilloutVR_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="DarkRift">
-      <HintPath>..\..\..\..\..\steam\steamapps\common\ChilloutVR\ChilloutVR_Data\Managed\DarkRift.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\ChilloutVR\ChilloutVR_Data\Managed\DarkRift.dll</HintPath>
     </Reference>
     <Reference Include="DarkRift.Client">
-      <HintPath>..\..\..\..\..\steam\steamapps\common\ChilloutVR\ChilloutVR_Data\Managed\DarkRift.Client.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\ChilloutVR\ChilloutVR_Data\Managed\DarkRift.Client.dll</HintPath>
     </Reference>
     <Reference Include="DarkRift.Server">
       <HintPath>..\..\..\..\..\steam\steamapps\common\ChilloutVR\ChilloutVR_Data\Managed\DarkRift.Server.dll</HintPath>
@@ -54,7 +54,7 @@
       <HintPath>..\..\..\..\..\steam\steamapps\common\ChilloutVR\MelonLoader\MelonLoader\MelonLoader.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>E:\Steam\steamapps\common\ChilloutVR\ChilloutVR_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <HintPath>D:\Steam\steamapps\common\ChilloutVR\ChilloutVR_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -266,7 +266,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetPath)" "E:\Steam\steamapps\common\ChilloutVR\Mods" /Y /I
+    <PostBuildEvent>xcopy "$(TargetPath)" "D:\Steam\steamapps\common\ChilloutVR\Mods" /Y /I
 </PostBuildEvent>
   </PropertyGroup>
 </Project>
