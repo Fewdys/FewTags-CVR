@@ -55,31 +55,6 @@ namespace FewTags
             MelonLogger.Msg(ConsoleColor.Magenta, "Nameplate Overlay/Nameplate ESP - Keybind: RightCTRL + O");
             DownloadString();
             _hInstance.Patch(typeof(PlayerNameplate).GetMethod(nameof(PlayerNameplate.UpdateNamePlate)), null, typeof(Main).GetMethod(nameof(OnPlayerJoin), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).ToNewHarmonyMethod());
-            MelonCoroutines.Start(WaitForNamePlate());
-        }
-
-        private static IEnumerator WaitForNamePlate()
-        {
-            while (Resources.FindObjectsOfTypeAll<PlayerNameplate>() == null)
-                yield return null;
-
-            var plate = Resources.FindObjectsOfTypeAll<PlayerNameplate>()
-                .FirstOrDefault();
-
-            if (plate == null)
-            {
-                MelonLogger.Msg(ConsoleColor.Red, "Could not find PlayerNameplate with parent _NetworkedPlayerObject");
-                yield break;
-            }
-
-            var target = plate.transform.Find("Canvas/Content");
-            if (target == null)
-            {
-                MelonLogger.Msg(ConsoleColor.Red, "Could not find [NamePlate]/Canvas/Content under the nameplate");
-                yield break;
-            }
-
-            s_namePlate = target.gameObject;
         }
 
 
