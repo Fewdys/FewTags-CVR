@@ -60,10 +60,28 @@ namespace FewTags
 
         private static IEnumerator WaitForNamePlate()
         {
-            while (Resources.FindObjectsOfTypeAll<PuppetMaster>() == null)
+            while (Resources.FindObjectsOfTypeAll<PlayerNameplate>() == null)
                 yield return null;
-            s_namePlate = Resources.FindObjectsOfTypeAll<PuppetMaster>().FirstOrDefault(x => x.name == "_NetworkedPlayerObject").transform.Find("[NamePlate]/Canvas/Content").gameObject;
+
+            var plate = Resources.FindObjectsOfTypeAll<PlayerNameplate>()
+                .FirstOrDefault();
+
+            if (plate == null)
+            {
+                MelonLogger.Msg(ConsoleColor.Red, "Could not find PlayerNameplate with parent _NetworkedPlayerObject");
+                yield break;
+            }
+
+            var target = plate.transform.Find("Canvas/Content");
+            if (target == null)
+            {
+                MelonLogger.Msg(ConsoleColor.Red, "Could not find [NamePlate]/Canvas/Content under the nameplate");
+                yield break;
+            }
+
+            s_namePlate = target.gameObject;
         }
+
 
         public static void NameplateOverlayLog(bool set)
         {
@@ -197,7 +215,7 @@ namespace FewTags
                 try  // Try Catch For Incase The Tag Somehow Manages To Mess Up -- Improved For You <3
                 {
                     s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 3 : 20) : plateText.Length;
-                    s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
+                    s_MainPlateHolder = GameObject.Instantiate(GameObject.Find(uid + "[NamePlate]/Canvas/Content"), GameObject.Find(uid + "[NamePlate]/Canvas").transform);
                     s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.155f - (multiplier) * 0.0778f, 0);
                     s_MainPlateHolder.name = "FewTags-Default"; // why were you not naming the object to be able to find it if needed?
                     s_MainPlateHolder.layer = 69; // ;)
@@ -257,7 +275,7 @@ namespace FewTags
                     : plateText.Length;
 
                 // Instantiate the main plate holder and set its position, scale, and layer
-                s_MainPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find($"/{uid}[NamePlate]/Canvas").transform);
+                s_MainPlateHolder = GameObject.Instantiate(GameObject.Find(uid + "[NamePlate]/Canvas/Content"), GameObject.Find($"/{uid}[NamePlate]/Canvas").transform);
                 s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.210f - (multiplier) * 0.0618f, 0);
                 s_MainPlateHolder.name = "FewTags-NamePlate";
                 s_MainPlateHolder.layer = 69;
@@ -344,7 +362,7 @@ namespace FewTags
             {
                 try  // Try Catch For Incase The Tag Somehow Manages To Mess Up -- Improved For You <3
                 {
-                    s_BigPlateHolder = GameObject.Instantiate(s_namePlate, GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
+                    s_BigPlateHolder = GameObject.Instantiate(GameObject.Find(uid + "[NamePlate]/Canvas/Content"), GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
                     s_BigPlateHolder.name = "FewTags-BigNamePlate"; // again why were you not naming the object to be able to find it if needed?
                     s_BigPlateHolder.layer = 69; // ;)
                     string[] splited = plateText.Split(new string[] { "<size=" }, StringSplitOptions.None);
