@@ -54,7 +54,7 @@ namespace FewTags
             MelonLogger.Msg("FewTags Loaded. Press Slash To Reload Tags");
             MelonLogger.Msg(ConsoleColor.Magenta, "Nameplate Overlay/Nameplate ESP - Keybind: RightCTRL + O");
             DownloadString();
-            _hInstance.Patch(typeof(PlayerNameplate).GetMethod(nameof(PlayerNameplate.UpdateNamePlate)), null, typeof(Main).GetMethod(nameof(OnPlayerJoin), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).ToNewHarmonyMethod());
+            _hInstance.Patch(typeof(PlayerNameplate).GetMethod(nameof(PlayerNameplate.UpdateNamePlateSettings)), null, typeof(Main).GetMethod(nameof(OnPlayerJoin), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).ToNewHarmonyMethod());
         }
 
 
@@ -92,7 +92,7 @@ namespace FewTags
         {
             if (Input.GetKeyDown(KeyCode.Slash))
             {
-                if (CVR_MenuManager.Instance.quickMenuCollider.enabled == true || ViewManager.Instance.IsAnyMenuOpen == true) { return; } // we don't wanna accidently reload tags while menu's are open
+                if (ViewManager.Instance == null || ViewManager.Instance.IsAnyMenuOpen == true) { return; } // we don't wanna accidently reload tags while menu's are open
                 else
                 {
                     ReloadString();
