@@ -1,23 +1,19 @@
-﻿using ABI_RC.Core.InteractionSystem;
-using ABI_RC.Core.Networking.IO.Global;
-using ABI_RC.Core.Networking.IO.Instancing;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using ABI_RC.Core.InteractionSystem;
 using ABI_RC.Core.Player;
-using ABI_RC.Core.Savior;
 using ABI_RC.Core.UI;
 using FewTags.Utils;
 using Harmony;
 using MelonLoader;
 using Newtonsoft.Json;
-using SimpleJSON;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Security.Policy;
-using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 // Thanks To Edward7 For The Original Base
 
@@ -25,457 +21,532 @@ namespace FewTags
 {
     public class Main : MelonMod
     {
-        public static bool ChatBoxLoaded { get; private set; }
+        private const string TagsUrl = "https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json";
+        private const int TagLayer = 69;
 
-        private static float a;
-        private static float b;
-        private static float g;
-        private static float r;
+        private const string DefaultName = "FewTags-Default";
+        private const string PlateName = "FewTags-NamePlate";
+        private const string BigPlateName = "FewTags-BigNamePlate";
 
-        static bool isOverlay = false;
-        private static Json._Tags s_tags { get; set; }
+        private static readonly Color BigPlateColor = new Color(0f, 0f, 0f, 0.55f);
+        private static readonly Regex RichTextRegex = new Regex("<[^>]+>", RegexOptions.Compiled);
+        private static readonly Regex SizeRegex = new Regex(@"<size=(\d+)", RegexOptions.Compiled);
+
+        private const string DefaultPlateText =
+            "<b><color=#ff0000>-</color> <color=#ff7f00>F</color><color=#ffbf00>e</color><color=#ffff00>w</color>" +
+            "<color=#80ff00>T</color><color=#00ff00>a</color><color=#00ff80>g</color><color=#00ffff>s</color> <color=#0000ff>-</color></b>";
+
+        private static readonly KeyValuePair<string, AnimationType>[] AnimationTags =
+        {
+            new KeyValuePair<string, AnimationType>("@cyln",   AnimationType.CYLN),
+            new KeyValuePair<string, AnimationType>("@letter", AnimationType.LetterByLetter),
+            new KeyValuePair<string, AnimationType>("@rain",   AnimationType.Rainbow),
+            new KeyValuePair<string, AnimationType>("@sr",     AnimationType.SmoothRainbow),
+        };
+
         public static string s_rawTags { get; set; }
-        private static List<Json.User> _userArr { get; set; }
-        private static GameObject s_namePlate { get; set; }
-        private static GameObject s_dev { get; set; }
-        private static GameObject s_MainPlateHolder { get; set; }
-        private static GameObject s_BigPlateHolder { get; set; }
-        private static GameObject s_textMeshProGmj { get; set; }
-        private static GameObject s_textMeshProGmj2 { get; set; }
-        private static Transform s_plateTransform { get; set; }
-        private static TMPro.TextMeshProUGUI s_Logo { get; set; }
-        public static List<CVRPlayerEntity> p = new List<CVRPlayerEntity>();
+
+        private static bool s_overlay;
+        private static int s_downloading;
+        private static Dictionary<string, TagRecord> s_lookup = new Dictionary<string, TagRecord>(StringComparer.Ordinal);
+        private static volatile Dictionary<string, TagRecord> s_pendingLookup; // Written by the download thread, consumed in OnUpdate
+        private static readonly Dictionary<string, TagEntry> s_entries = new Dictionary<string, TagEntry>(StringComparer.Ordinal); // One entry per player (by user id). This is what prevents duplicates.
+        private static readonly List<string> s_pruneScratch = new List<string>();
 
         private HarmonyInstance _hInstance { get; } = new HarmonyInstance(Guid.NewGuid().ToString());
+
+        private sealed class TagRecord
+        {
+            public readonly Json.User User;
+            public readonly string Signature; // changes whenever the user's tag data changes
+
+            public TagRecord(Json.User user, string signature)
+            {
+                User = user;
+                Signature = signature;
+            }
+        }
+
+        private sealed class TagEntry
+        {
+            public string Uid;
+            public string Signature;
+            public Transform Canvas;
+            public readonly List<GameObject> Objects = new List<GameObject>();
+            public readonly List<TMP_Text> Texts = new List<TMP_Text>();
+
+            public bool IsCurrent(string signature, Transform canvas)
+            {
+                if (Canvas == null || Canvas != canvas || Signature != signature) return false;
+                for (int i = 0; i < Objects.Count; i++)
+                    if (Objects[i] == null) return false;
+                return true;
+            }
+
+            public void ApplyOverlay(bool value)
+            {
+                for (int i = 0; i < Texts.Count; i++)
+                {
+                    TMP_Text t = Texts[i];
+                    if (t != null && t.isOverlay != value) t.isOverlay = value;
+                }
+            }
+
+            public void Destroy()
+            {
+                for (int i = 0; i < Objects.Count; i++)
+                    if (Objects[i] != null) UnityEngine.Object.Destroy(Objects[i]);
+                Objects.Clear();
+                Texts.Clear();
+            }
+        }
 
         public override void OnApplicationStart()
         {
             MelonLogger.Msg("Initializing.");
             MelonLogger.Msg("FewTags Loaded. Press Slash To Reload Tags");
-            MelonLogger.Msg(ConsoleColor.Magenta, "Nameplate Overlay/Nameplate ESP - Keybind: RightCTRL + O");
-            DownloadString();
-            _hInstance.Patch(typeof(PlayerNameplate).GetMethod(nameof(PlayerNameplate.UpdateNamePlateSettings)), null, typeof(Main).GetMethod(nameof(OnPlayerJoin), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).ToNewHarmonyMethod());
+            MelonLogger.Msg(ConsoleColor.Magenta, "Nameplate Overlay/Nameplate ESP - Keybind: RightShift + O");
+            DownloadTagsAsync();
+            _hInstance.Patch(
+                typeof(PlayerNameplate).GetMethod(nameof(PlayerNameplate.UpdateNamePlateSettings)),
+                null,
+                typeof(Main).GetMethod(nameof(OnPlayerJoin), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).ToNewHarmonyMethod());
         }
 
+        public override void OnUpdate()
+        {
+            // Apply freshly downloaded tags on the main thread
+            Dictionary<string, TagRecord> pending = s_pendingLookup;
+            if (pending != null)
+            {
+                s_pendingLookup = null;
+                s_lookup = pending;
+                RefreshAllPlayers();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Slash))
+            {
+                if (ViewManager.Instance == null || ViewManager.Instance.IsAnyMenuOpen) return; // don't reload while menus are open
+                MelonLogger.Msg("Reloading Tags...");
+                CohtmlHud.Instance.ViewDropText("FewTags", "Connected", "Downloading Tags");
+                DownloadTagsAsync();
+            }
+
+            if (Input.GetKey(KeyCode.RightShift) && Input.GetKeyDown(KeyCode.O))
+            {
+                if (ViewManager.Instance == null || ViewManager.Instance.IsAnyMenuOpen) return;
+                if (CVR_MenuManager.Instance != null && CVR_MenuManager.Instance.quickMenuCollider.enabled) return;
+
+                s_overlay = !s_overlay;
+                NameplateOverlayLog(s_overlay);
+                foreach (TagEntry entry in s_entries.Values)
+                    entry.ApplyOverlay(s_overlay);
+            }
+        }
 
         public static void NameplateOverlayLog(bool set)
         {
-            p = CVRPlayerManager.Instance.NetworkPlayers;
-            if (set == true)
-            {
-                MelonLogger.Msg(System.ConsoleColor.Green, "(Tagged Players) Nameplate ESP On");
-            }
-            else if (set == false)
-            {
-                MelonLogger.Msg(System.ConsoleColor.Red, "(Tagged Players) Nameplate ESP Off");
-            }
+            if (set) MelonLogger.Msg(ConsoleColor.Green, "(Tagged Players) Nameplate ESP On");
+            else MelonLogger.Msg(ConsoleColor.Red, "(Tagged Players) Nameplate ESP Off");
         }
 
-        public static void NameplateESP(PlayerNameplate player)
+        private static void DownloadTagsAsync()
         {
-            s_uId = player.transform.parent.name;
-            s_user = s_tags.records.FirstOrDefault(x => x.UserId == s_uId);
-            if (s_user == null) return;
-            if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas") != null)
-            {
-                if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/Content") != null)
-                    GameObject.Find($"{s_uId}/[NamePlate]/Canvas/Content").GetComponentsInChildren<TMPro.TextMeshProUGUI>().All(m => m.isOverlay = isOverlay);
-                if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-Default") != null)
-                    GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-Default").GetComponentsInChildren<TMPro.TextMeshProUGUI>().All(m => m.isOverlay = isOverlay);
-                if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-NamePlate") != null)
-                    GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-NamePlate").GetComponentsInChildren<TMPro.TextMeshProUGUI>().All(m => m.isOverlay = isOverlay);
-            }
-        }
+            if (Interlocked.Exchange(ref s_downloading, 1) == 1) return; // already downloading
 
-        // Keybind To Re-Fetch The Tags (Prevents The Need Of Having To Restart You're Game)
-        public override void OnUpdate()
-        {
-            if (Input.GetKeyDown(KeyCode.Slash))
+            Task.Run(() =>
             {
-                if (ViewManager.Instance == null || ViewManager.Instance.IsAnyMenuOpen == true) { return; } // we don't wanna accidently reload tags while menu's are open
-                else
+                try
                 {
-                    ReloadString();
-                    MelonLogger.Msg("Reloaded Tags, Please Rejoin World If Needed.");
-                    CohtmlHud.Instance.ViewDropText("FewTags", "Connected", "Downloading Tags");
-                }
-            }
+                    string raw;
+                    using (WebClient wc = new WebClient())
+                        raw = wc.DownloadString(TagsUrl);
 
-            // Overlay Toggle
-            if (Input.GetKey(KeyCode.RightShift) && Input.GetKeyDown(KeyCode.O))
-            {
-                if (CVR_MenuManager.Instance.quickMenuCollider.enabled == true || ViewManager.Instance.IsAnyMenuOpen == true) { return; }
-                else
-                {
-                    isOverlay = !isOverlay;
-                    NameplateOverlayLog(isOverlay);
-                    if (p.Count != 0)
+                    Json._Tags tags = JsonConvert.DeserializeObject<Json._Tags>(raw);
+                    var lookup = new Dictionary<string, TagRecord>(StringComparer.Ordinal);
+                    if (tags != null && tags.records != null)
                     {
-                        try
+                        foreach (Json.User u in tags.records)
                         {
-                            foreach (var player in p)
-                            {
-                                NameplateESP(player.PlayerNameplate);
-                            }
+                            if (u == null || string.IsNullOrEmpty(u.UserId)) continue;
+                            lookup[u.UserId] = new TagRecord(u, JsonConvert.SerializeObject(u));
                         }
-                        catch { }
                     }
+
+                    s_rawTags = raw;
+                    s_pendingLookup = lookup;
+                    MelonLogger.Msg(ConsoleColor.Green, "Downloaded Tags");
                 }
-            }
+                catch (Exception e)
+                {
+                    MelonLogger.Msg(ConsoleColor.DarkRed, $"Error Downloading Tags (Likely A Github Issue or A Internet/Service Issue): {e.GetType().Name}: {e.Message}");
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref s_downloading, 0);
+                }
+            });
         }
-
-        // Used For The Keybind To Update The Tags
-        private void ReloadString()
-        {
-            try
-            {
-                s_tags.records.Clear();
-            }
-            catch // not gonna let yourself know if there was an issue clearing?? let me fix that for you
-            {
-                MelonLogger.Msg(ConsoleColor.Yellow, "Couldn't Clear Tags List - Probably Because There Were No Tags To Clear");
-            }
-            DownloadString();
-        }
-
-        private static string s_uId { get; set; }
-        private static Json.User s_user { get; set; }
 
         private static void OnPlayerJoin(PlayerNameplate __instance)
         {
-            s_uId = __instance.transform.parent.name;
-            s_user = s_tags.records.FirstOrDefault(x => x.UserId == s_uId);
-            if (s_user == null) return;
-            if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/Content") != null)
-            {
-                GameObject.Find($"{s_uId}/[NamePlate]/Canvas/Content").GetComponentsInChildren<TMPro.TextMeshProUGUI>().All(m => m.isOverlay = isOverlay);
-            }
-            if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-Default") == null) // why wasnt there a check for if it already exists?
-            {
-                    GenerateDefaultPlate(s_uId, "<b><color=#ff0000>-</color> <color=#ff7f00>F</color><color=#ffbf00>e</color><color=#ffff00>w</color><color=#80ff00>T</color><color=#00ff00>a</color><color=#00ff80>g</color><color=#00ffff>s</color> <color=#0000ff>-</color></b>", 0, new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
-            }
-            if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-NamePlate") == null) // why wasnt there a check for if it already exists?
-            {
-                for (int i = 0; i < s_user.NamePlatesText.Length; i++)
-                {
-                    GeneratePlate(s_uId, s_user.NamePlatesText[i], i, new Color32(byte.Parse(s_user.Color[0].ToString()), byte.Parse(s_user.Color[1].ToString()), byte.Parse(s_user.Color[2].ToString()), byte.Parse(s_user.Color[3].ToString())));
-                }
-            }
-            if (GameObject.Find($"{s_uId}/[NamePlate]/Canvas/FewTags-BigNamePlate") == null) // again why wasnt there a check for if it already exists?
-            {
-                for (int i = 0; i < s_user.BigPlatesText.Length; i++)
-                {
-                    GenerateBigPlate(s_uId, s_user.BigPlatesText[i], i);
-                }
-            }
-            /*CreateLogo(s_uId);*/
+            try { Ensure(__instance); }
+            catch (Exception e) { MelonLogger.Msg(ConsoleColor.DarkRed, $"FewTags error: {e}"); }
         }
 
-        private static float s_textCount { get; set; }
-        private static GameObject s_imageHolder { get; set; }
-
-
-        private static void GenerateDefaultPlate(string uid, string plateText, int multiplier, Color32 color)
+        private static void RefreshAllPlayers()
         {
-            // This Was Used For Testing Mainly To Check Lengths Of Things (Sorta Math Related I Guess)
-            // MelonLogger.Msg("---PlateText---");
-            // MelonLogger.Msg(plateText);
-            // MelonLogger.Msg("---PlateText Length---");
-            // MelonLogger.Msg(plateText.Length);
+            var manager = CVRPlayerManager.Instance;
+            if (manager == null || manager.NetworkPlayers == null) return;
 
-            if (plateText == null) { return; } // why make the plate if it has no text to start with?
-            else if (uid == null) { return; } // this one isnt really needed tbh but personally I like to check to prevent code that shouldn't be running to run
-            else
+            foreach (CVRPlayerEntity player in manager.NetworkPlayers)
             {
-                try  // Try Catch For Incase The Tag Somehow Manages To Mess Up -- Improved For You <3
-                {
-                    s_textCount = plateText.Contains("<color=") ? plateText.Length - (Regex.Matches(plateText, "<color=").Count != 1 ? Regex.Matches(plateText, "<color=").Count * 23 - 3 : 20) : plateText.Length;
-                    s_MainPlateHolder = GameObject.Instantiate(GameObject.Find(uid + "[NamePlate]/Canvas/Content"), GameObject.Find(uid + "[NamePlate]/Canvas").transform);
-                    s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.155f - (multiplier) * 0.0778f, 0);
-                    s_MainPlateHolder.name = "FewTags-Default"; // why were you not naming the object to be able to find it if needed?
-                    s_MainPlateHolder.layer = 69; // ;)
-                    s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
-                    s_imageHolder.GetComponent<UnityEngine.UI.Image>().color = color;
-                    try // This Is Just Here Incase The Paths of Objects To Destroy Change (A Try Catch In A Try Catch May Seem Repetitive & Stupid, But It's For The Sake Of Knowing Whats Wrong Easily)
-                    {
-                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
-                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
-                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/UserImage").gameObject);
-                        //GameObject.Destroy(s_MainPlateHolder.transform.Find("Image/Image").gameObject);
-                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
-                        GameObject.Destroy(s_MainPlateHolder.transform.Find("Image").gameObject);
-                    }
-                    catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-Nameplate ({uid})"); }
-                    s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
-                    s_imageHolder.transform.localScale = new Vector3(1, 0.5f, 1);
-                    s_imageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(s_textCount / 10, 0.5f);
-                    s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
-                    s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
-                    s_textMeshProGmj.transform.localPosition = Vector3.zero;
-                    s_textMeshProGmj.gameObject.GetComponent<UnityEngine.RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
-                    var tmpc = s_textMeshProGmj.GetComponent<TMPro.TextMeshProUGUI>(); // why make life more diffucult and not just do this?
-                    tmpc.text = plateText;
-                    tmpc.alignment = TMPro.TextAlignmentOptions.Center;
-                    tmpc.autoSizeTextContainer = true;
-                    tmpc.enableCulling = true;
-                    tmpc.material.enableInstancing = true;
-                    tmpc.isOverlay = isOverlay;
-
-                    // Done Just For Removing The Text Under Devs/Mods - Doesn't Effect Being Able To See Who Is A Dev/Mod ect. (Done For Personal Preference To Make Things Cleaner)
-                    s_dev = GameObject.Find("/" + uid + "[NamePlate]/Canvas/Content/Disable with Menu").gameObject.GetComponent<RectTransform>().gameObject;
-                    s_dev.transform.gameObject.SetActive(false);
-                }
-                catch // why not have it tell us where something went wrong instead of just basically catching it each time it fails
-                {
-                    if (uid != null)
-                    {
-                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create Nameplate On {uid}");
-                    }
-                    else
-                    {
-                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create Nameplate");
-                    }
-                }
-            }
-        }
-        private static void GeneratePlate(string uid, string plateText, int multiplier, Color32 color)
-        {
-            if (string.IsNullOrEmpty(plateText) || string.IsNullOrEmpty(uid)) return;
-
-            try
-            {
-                // Calculate the text count, adjusting for any color tags
-                s_textCount = plateText.Contains("<color=")
-                    ? plateText.Length - (Regex.Matches(plateText, "<color=").Count * 23 - 3)
-                    : plateText.Length;
-
-                // Instantiate the main plate holder and set its position, scale, and layer
-                s_MainPlateHolder = GameObject.Instantiate(GameObject.Find(uid + "[NamePlate]/Canvas/Content"), GameObject.Find($"/{uid}[NamePlate]/Canvas").transform);
-                s_MainPlateHolder.transform.localPosition = new Vector3(0, -0.210f - (multiplier) * 0.0618f, 0);
-                s_MainPlateHolder.name = "FewTags-NamePlate";
-                s_MainPlateHolder.layer = 69;
-
-                // Configure the image holder and remove unnecessary components
-                s_imageHolder = s_MainPlateHolder.transform.Find("Image").gameObject;
-                s_imageHolder.GetComponent<UnityEngine.UI.Image>().color = color;
-
-                try
-                {
-                    // Safely destroy unneeded components
-                    GameObject.Destroy(s_MainPlateHolder.transform.Find("Disable with Menu").gameObject);
-                    GameObject.Destroy(s_imageHolder);
-                }
-                catch
-                {
-                    MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-Nameplate ({uid})");
-                }
-
-                // Adjust the scale and size of the main plate and text container
-                s_MainPlateHolder.transform.localScale = new Vector3(0.3f, 0.3f, 1);
-
-                // Reference to TextMeshPro GameObject and adjust its scale and position
-                s_textMeshProGmj = s_MainPlateHolder.transform.Find("TMP:Username").gameObject;
-                s_textMeshProGmj.transform.localScale = new Vector3(0.58f, 0.58f, 1);
-                s_textMeshProGmj.transform.localPosition = Vector3.zero;
-                s_textMeshProGmj.GetComponent<RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
-
-                var tmpc = s_textMeshProGmj.GetComponent<TMP_Text>();
-
-                // Set TextMeshPro properties
-                tmpc.alignment = TMPro.TextAlignmentOptions.Center;
-                tmpc.autoSizeTextContainer = true;
-                tmpc.enableCulling = true;
-                tmpc.material.enableInstancing = true;
-                tmpc.isOverlay = isOverlay;
-
-                // Add and configure the AnimationManager
-                AnimationManager animationManager = s_textMeshProGmj.gameObject.AddComponent<AnimationManager>();
-                animationManager.textMeshPro = tmpc;
-
-                // Parse and add animations based on tags
-                if (plateText.StartsWith("@cyln"))
-                {
-                    animationManager.animationTypes.Add(AnimationType.CYLN);
-                    plateText = plateText.Remove(0, "@cyln".Length).Insert(0, "");
-                }
-                if (plateText.StartsWith("@letter"))
-                {
-                    animationManager.animationTypes.Add(AnimationType.LetterByLetter);
-                    plateText = plateText.Remove(0, "@letter".Length).Insert(0, "");
-                }
-                if (plateText.StartsWith("@rain"))
-                {
-                    animationManager.animationTypes.Add(AnimationType.Rainbow);
-                    plateText = plateText.Remove(0, "@rain".Length).Insert(0, "");
-                }
-                if (plateText.StartsWith("@sr"))
-                {
-                    animationManager.animationTypes.Add(AnimationType.SmoothRainbow);
-                    plateText = plateText.Remove(0, "@sr".Length).Insert(0, "");
-                }
-
-                // Set the final text after removing the tags
-                tmpc.text = plateText;
-
-                // Start the animation
-                animationManager.Start();
-            }
-            catch (Exception e)
-            {
-                MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create Nameplate for {uid}: {e}");
+                if (player == null || player.PlayerNameplate == null) continue;
+                try { Ensure(player.PlayerNameplate); }
+                catch (Exception e) { MelonLogger.Msg(ConsoleColor.DarkRed, $"FewTags error: {e}"); }
             }
         }
 
-
-
-        // Duplicated GeneratePlate And Changed/Added A Bit Because I Was Lazy And Wanted A Specific Spot For Big Text -- You're just like me fr stop being lazy tho :p
-        private static void GenerateBigPlate(string uid, string plateText, int multiplier)
+        // Creates the tag set if missing, rebuilds it if the data/objects changed, otherwise does nothing.
+        private static void Ensure(PlayerNameplate nameplate)
         {
-            if (plateText == null) { return; } // again why make the plate if it has no text to start with?
-            else if (uid == null) { return; } // again this one isnt really needed tbh but personally I like to check to prevent code that shouldn't be running to run
-            else
+            if (nameplate == null) return;
+
+            Transform overhead = FindAncestor(nameplate.transform, "[Overhead]");
+            if (overhead == null || overhead.parent == null) return;
+            string uid = overhead.parent.name;
+
+            if (uid == "_PLAYERLOCAL")
             {
-                try  // Try Catch For Incase The Tag Somehow Manages To Mess Up -- Improved For You <3
+                uid = nameplate.Player.PlayerId;
+            }
+
+            TagEntry entry;
+            s_entries.TryGetValue(uid, out entry);
+
+            TagRecord record;
+            s_lookup.TryGetValue(uid, out record);
+
+            if (record == null) // not a tagged user (or tags were removed on reload)
+            {
+                if (entry != null)
                 {
-                    s_BigPlateHolder = GameObject.Instantiate(GameObject.Find(uid + "[NamePlate]/Canvas/Content"), GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform);
-                    s_BigPlateHolder.name = "FewTags-BigNamePlate"; // again why were you not naming the object to be able to find it if needed?
-                    s_BigPlateHolder.layer = 69; // ;)
-                    string[] splited = plateText.Split(new string[] { "<size=" }, StringSplitOptions.None);
-                    string sizeString = string.Empty;
-                    for (int i = 0; i < splited[1].Length; i++)
-                    {
-                        if (!char.IsDigit(splited[1][i])) break;
-                        sizeString += splited[1][i];
-                    }
-                    // Moves Big Text Based On Weather Or Not ChatBox Is Loaded -- Idk Why You Were Checking For A Deprecated Mod
-                    s_BigPlateHolder.transform.localPosition = new Vector3(0, 0.45f + (int.Parse(sizeString)) * 0.0075f, 0);
-                    try // This Is Just Here Incase The Paths of Objects To Destroy Change (A Try Catch In A Try Catch May Seem Repetitive & Stupid, But It's For The Sake Of Knowing Whats Wrong Easily)
-                    {
-                        //GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject.GetComponent<UnityEngine.UI.Image>());
-                        //GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/FriendsIndicator").gameObject);
-                        //GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/ObjectMaskSlave").gameObject);
-                        //GameObject.Destroy(s_BigPlateHolder.transform.Find("Image/UserImage").gameObject);
-                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Disable with Menu").gameObject);
-                        GameObject.Destroy(s_BigPlateHolder.transform.Find("Image").gameObject);
-                    }
-                    catch { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Destroy One Or More Objects On Created FewTags-BigNameplate ({uid})"); }
-                    s_textMeshProGmj2 = s_BigPlateHolder.transform.Find("TMP:Username").gameObject;
-                    s_textMeshProGmj2.transform.localPosition = Vector3.zero;
-                    s_textMeshProGmj2.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
-                    var bptmpc = s_textMeshProGmj2.GetComponent<TMPro.TextMeshProUGUI>(); // again why make life more diffucult and not just do this?
-                    bptmpc.text = plateText;
-                    bptmpc.autoSizeTextContainer = true;
-                    bptmpc.color = new Color(r, g, b, 0.55f);
-                    bptmpc.enableCulling = true;
-                    bptmpc.material.enableInstancing = true;
-                    bptmpc.isOverlay = isOverlay;
+                    entry.Destroy();
+                    s_entries.Remove(uid);
                 }
-                catch // again why not have it tell us where something went wrong instead of just basically catching it each time it fails
+                return;
+            }
+
+            Transform canvas = overhead.Find("Canvas");
+            if (canvas == null) return;
+
+            if (entry != null && entry.IsCurrent(record.Signature, canvas))
+            {
+                entry.ApplyOverlay(s_overlay); // nothing to create, just keep overlay state in sync
+                return;
+            }
+
+            if (entry != null)
+            {
+                entry.Destroy();
+                s_entries.Remove(uid);
+            }
+
+            PruneDeadEntries();
+
+            TagEntry built = Build(uid, record, canvas);
+            if (built != null) s_entries[uid] = built;
+        }
+
+        private static void PruneDeadEntries()
+        {
+            s_pruneScratch.Clear();
+            foreach (KeyValuePair<string, TagEntry> kv in s_entries)
+                if (kv.Value.Canvas == null) s_pruneScratch.Add(kv.Key);
+            foreach (string key in s_pruneScratch)
+                s_entries.Remove(key);
+        }
+
+        private static Transform FindAncestor(Transform t, string name)
+        {
+            while (t != null)
+            {
+                if (t.name == name) return t;
+                t = t.parent;
+            }
+            return null;
+        }
+
+        private static TagEntry Build(string uid, TagRecord record, Transform canvas)
+        {
+            Transform nameplate = canvas.Find("Nameplate");
+            Transform content = nameplate != null ? nameplate.GetChild(0) : null;
+            if (content == null) return null; // nameplate not ready yet, the next settings update will retry
+
+            Json.User user = record.User;
+            Color32 color = ToColor32(user.Color);
+
+            var entry = new TagEntry { Uid = uid, Signature = record.Signature, Canvas = canvas };
+            entry.Texts.AddRange(content.GetComponentsInChildren<TMP_Text>(true));
+
+            Guard(uid, "default plate", () => CreateDefaultPlate(entry, content, nameplate, color));
+
+            if (user.NamePlatesText != null)
+            {
+                for (int i = 0; i < user.NamePlatesText.Length; i++)
                 {
-                    if (uid != null)
-                    {
-                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create BigNameplate On {uid}");
-                    }
-                    else
-                    {
-                        MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create BigNameplate");
-                    }
+                    int index = i;
+                    string text = user.NamePlatesText[i];
+                    Guard(uid, "nameplate #" + i, () => CreatePlate(entry, content, nameplate, text, index));
+                }
+            }
+
+            if (user.BigPlatesText != null)
+            {
+                for (int i = 0; i < user.BigPlatesText.Length; i++)
+                {
+                    string text = user.BigPlatesText[i];
+                    Guard(uid, "big nameplate #" + i, () => CreateBigPlate(entry, content, canvas, text));
+                }
+            }
+
+            entry.ApplyOverlay(s_overlay);
+            return entry;
+        }
+
+        private static void Guard(string uid, string what, Action action)
+        {
+            try { action(); }
+            catch (Exception e) { MelonLogger.Msg(ConsoleColor.DarkRed, $"Failed To Create {what} on {uid}: {e.Message}"); }
+        }
+
+        private static void CreateDefaultPlate(TagEntry entry, Transform content, Transform parent, Color32 color)
+        {
+            GameObject go = CloneContent(entry, content, parent, DefaultName);
+            go.transform.localPosition = new Vector3(0f, -0.155f, 0f);
+            go.transform.localScale = new Vector3(0.3f, 0.3f, 1f);
+
+            StripImageComponents(go.transform, false);
+            StripUsernameComponents(go.transform, false);
+
+            TMP_Text tmp = ConfigureText(entry, go.transform, DefaultPlateText);
+
+            // Hide the vanilla dev/mod text under the nameplate (cleaner look)
+            Transform dev = content.Find("Disable with Menu");
+            if (dev != null) dev.gameObject.SetActive(false);
+
+            go.SetActive(true);
+        }
+
+        private static void CreatePlate(TagEntry entry, Transform content, Transform parent, string text, int index)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+
+            GameObject go = CloneContent(entry, content, parent, PlateName);
+            go.transform.localPosition = new Vector3(0f, -0.210f - index * 0.0618f, 0f);
+            go.transform.localScale = new Vector3(0.3f, 0.3f, 1f);
+
+            StripImageComponents(go.transform, false);
+            StripUsernameComponents(go.transform, false);
+
+            TMP_Text tmp = ConfigureText(entry, go.transform, text);
+
+            // Pull animation prefixes (@cyln, @letter, @rain, @sr) off the text
+            var animations = new List<AnimationType>();
+            text = ParseAnimationPrefixes(text, animations);
+
+            if (animations.Count > 0)
+            {
+                AnimationManager manager = tmp.gameObject.AddComponent<AnimationManager>();
+                manager.textMeshPro = tmp;
+                foreach (AnimationType type in animations)
+                    manager.animationTypes.Add(type);
+
+                tmp.text = text;
+
+                manager.Start();
+            }
+
+            go.SetActive(true);
+        }
+
+        private static void CreateBigPlate(TagEntry entry, Transform content, Transform canvas, string text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+
+            GameObject go = CloneContent(entry, content, canvas, BigPlateName);
+
+            Match size = SizeRegex.Match(text);
+            int sizeValue = size.Success ? int.Parse(size.Groups[1].Value) : 20;
+            go.transform.localPosition = new Vector3(0f, 0.45f + sizeValue * 0.0075f, 0f);
+
+            StripImageComponents(go.transform, false);
+            StripUsernameComponents(go.transform, false);
+
+            TMP_Text tmp = FindUsernameText(go.transform);
+
+            // Pull animation prefixes (@cyln, @letter, @rain, @sr) off the text
+            var animations = new List<AnimationType>();
+            text = ParseAnimationPrefixes(text, animations);
+
+            if (animations.Count > 0)
+            {
+                AnimationManager manager = tmp.gameObject.AddComponent<AnimationManager>();
+                manager.textMeshPro = tmp;
+                foreach (AnimationType type in animations)
+                    manager.animationTypes.Add(type);
+
+                tmp.text = text;
+
+                manager.Start();
+            }
+
+            tmp.transform.localPosition = Vector3.zero;
+            tmp.transform.localScale = new Vector3(0.03f, 0.03f, 0.03f);
+            tmp.text = text;
+            tmp.autoSizeTextContainer = true;
+            tmp.color = BigPlateColor;
+            tmp.enableCulling = true;
+            tmp.overflowMode = TextOverflowModes.Overflow;
+            tmp.material.enableInstancing = true;
+            tmp.isOverlay = s_overlay;
+            entry.Texts.Add(tmp);
+
+            go.SetActive(true);
+        }
+
+        private static GameObject CloneContent(TagEntry entry, Transform content, Transform parent, string name)
+        {
+            GameObject go = UnityEngine.Object.Instantiate(content.gameObject, parent);
+            go.name = name;
+            go.layer = TagLayer;
+            entry.Objects.Add(go);
+            DestroyNamed(go.transform, "Disable with Menu");
+            DestroyNamed(go.transform, "FriendsIndicator");
+            DestroyNamed(go.transform, "UserImage");
+            return go;
+        }
+
+        private static void StripImageComponents(Transform root, bool keepGraphic)
+        {
+            Transform image = root.Find("Image");
+            if (image == null) return;
+
+            Component[] comps = image.GetComponents<Component>();
+
+            // Dependents first (Mask etc.), Graphics last, so nothing is removed while something still requires it
+            for (int pass = 0; pass < 2; pass++)
+            {
+                for (int i = 0; i < comps.Length; i++)
+                {
+                    Component c = comps[i];
+                    if (c == null || c is Transform || c is CanvasRenderer) continue;
+
+                    bool isGraphic = c is Graphic;
+                    if (isGraphic && keepGraphic) continue;
+                    if (isGraphic != (pass == 1)) continue;
+
+                    UnityEngine.Object.Destroy(c);
                 }
             }
         }
 
-        // At Some Point Will Make This Show Up For Each Person Running The Mod If I Figure Out How To Since I Don't Have A Server Nor Do I Plan On Using One // Small Update On This, Probably Not, Or Atleast Not Anytime Soon
-        public static void CreateLogo(string uid)
+        private static void StripUsernameComponents(Transform root, bool keepGraphic)
         {
-            s_plateTransform = GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform;
-            s_Logo = GameObject.Instantiate(s_plateTransform.transform.Find("Content/TMP:Username").gameObject, s_plateTransform.transform.Find("Content").transform).gameObject.GetComponent<TMPro.TextMeshProUGUI>();
-            s_Logo.text = "<b><i><color=#00FFFF>FT</color>";
-            s_Logo.outlineWidth = 0.23f;
-            s_Logo.outlineColor = new Color32(0, 0, 0, 255);
-            s_Logo.autoSizeTextContainer = true;
-            s_Logo.enableAutoSizing = false;
-            s_Logo.fontSize = 0.19f;
-            s_Logo.transform.localPosition = new Vector3(-1.35f, -0.45f);
-            GameObject.Find("/" + uid + "[NamePlate]/Canvas").transform.localScale = new Vector3(0.45f, 0.45f, 1);
-        }
+            Transform username = root.Find("TMP:Username");
+            if (username == null) return;
 
-        // Downloads The String Of The Json Aka Tags
-        private static void DownloadString()
-        {
-            try
+            Component[] comps = username.GetComponents<Component>();
+
+            // Dependents first (Mask etc.), Graphics last, so nothing is removed while something still requires it
+            for (int pass = 0; pass < 2; pass++)
             {
-                using (WebClient wc = new WebClient())
+                for (int i = 0; i < comps.Length; i++)
                 {
-                    s_rawTags = wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/main/FewTags-CVR.json");
-                    s_tags = JsonConvert.DeserializeObject<Json._Tags>(s_rawTags);
-                    MelonLogger.Msg(ConsoleColor.Green, "Downloaded Tags");
+                    Component c = comps[i];
+                    if (c == null || c is Transform || c is CanvasRenderer || c is TMP_Text || c is TextMeshProUGUI) continue;
+
+                    bool isGraphic = c is Graphic;
+                    if (isGraphic && keepGraphic) continue;
+                    if (isGraphic != (pass == 1)) continue;
+
+                    UnityEngine.Object.Destroy(c);
                 }
             }
-            catch { MelonLogger.Msg(ConsoleColor.DarkRed, "Error Downloading Tags (Likely A Github Issue or A Internet/Service Issue)"); } // see like this you gave a reason for a possible issue. you should do that way more often when doing try catch
-
         }
-        private static void DownloadString2()
+
+        private static TMP_Text ConfigureText(TagEntry entry, Transform root, string text)
         {
-            try
+            TMP_Text tmp = FindUsernameText(root);
+            tmp.transform.localScale = new Vector3(0.58f, 0.58f, 1f);
+            tmp.transform.localPosition = Vector3.zero;
+            tmp.GetComponent<RectTransform>().anchoredPosition = new Vector2(-0.05f, 0f);
+
+            tmp.text = text;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.overflowMode = TextOverflowModes.Overflow;
+            tmp.autoSizeTextContainer = true;
+            tmp.enableCulling = true;
+            tmp.material.enableInstancing = true;
+            tmp.isOverlay = s_overlay;
+
+            entry.Texts.Add(tmp);
+            return tmp;
+        }
+
+        // Searches all descendants, so it works whether "TMP:Username" sits under Image or directly under Content.
+        private static TMP_Text FindUsernameText(Transform root)
+        {
+            TMP_Text[] all = root.GetComponentsInChildren<TMP_Text>(true);
+            for (int i = 0; i < all.Length; i++)
+                if (all[i].name == "TMP:Username") return all[i];
+            if (all.Length > 0) return all[0];
+            throw new InvalidOperationException("No TMP text found in cloned nameplate");
+        }
+
+        private static void DestroyNamed(Transform root, string name)
+        {
+            Transform[] all = root.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < all.Length; i++)
             {
-                using (WebClient wc = new WebClient())
+                if (all[i] != root && all[i].name == name)
                 {
-                    s_rawTags = wc.DownloadString("https://raw.githubusercontent.com/Fewdys/FewTags-CVR/refs/heads/main/FewTags-CVR.json");
-
-                    if (string.IsNullOrEmpty(s_rawTags))
-                    {
-                        return;
-                    }
-
-                    JSONNode jsonNode = JSON.Parse(s_rawTags);
-                    if (jsonNode == null)
-                    {
-                        return;
-                    }
-
-                    s_tags = new Json._Tags { records = new List<Json.User>() };
-
-                    foreach (JSONNode record in jsonNode["records"].AsArray)
-                    {
-                        List<string> tagsList = new List<string>();
-                        foreach (JSONNode tag in record["NamePlatesText"].AsArray)
-                        {
-                            tagsList.Add(tag.Value);
-                        }
-
-                        List<string> bigtagsList = new List<string>();
-                        foreach (JSONNode tag in record["BigPlatesText"].AsArray)
-                        {
-                            bigtagsList.Add(tag.Value);
-                        }
-
-                        int[] colorArray = null;
-
-                        if (record["Color"] != null && record["Color"].Count > 0)
-                        {
-                            colorArray = new int[record["Color"].Count];
-                            for (int i = 0; i < record["Color"].Count; i++)
-                            {
-                                colorArray[i] = record["Color"][i].AsInt;
-                            }
-                        }
-
-                        Json.User tagEntry = new Json.User
-                        {
-                            id = record["id"].AsInt,
-                            UserId = record["UserID"],
-                            NamePlatesText = tagsList.ToArray(),
-                            BigPlatesText = tagsList.ToArray(),
-                            Color = colorArray,
-                        };
-
-                        s_tags.records.Add(tagEntry);
-                    }
+                    UnityEngine.Object.Destroy(all[i].gameObject);
                     return;
                 }
             }
-            catch { MelonLogger.Msg(ConsoleColor.DarkRed, "Error Downloading Tags (Likely A Github Issue or A Internet/Service Issue)"); } // see like this you gave a reason for a possible issue. you should do that way more often when doing try catch
+        }
 
+        private static string ParseAnimationPrefixes(string text, List<AnimationType> found)
+        {
+            bool matched;
+            do
+            {
+                matched = false;
+                foreach (KeyValuePair<string, AnimationType> tag in AnimationTags)
+                {
+                    if (text.StartsWith(tag.Key, StringComparison.Ordinal))
+                    {
+                        if (!found.Contains(tag.Value)) found.Add(tag.Value);
+                        text = text.Substring(tag.Key.Length);
+                        matched = true;
+                    }
+                }
+            } while (matched);
+            return text;
+        }
+
+        private static float VisibleLength(string richText)
+        {
+            return RichTextRegex.Replace(richText, string.Empty).Length;
+        }
+
+        private static byte ClampByte(int v) { return (byte)Mathf.Clamp(v, 0, 255); }
+
+        private static Color32 ToColor32(int[] c)
+        {
+            if (c == null || c.Length < 3) return new Color32(255, 255, 255, 255);
+            return new Color32(ClampByte(c[0]), ClampByte(c[1]), ClampByte(c[2]), c.Length > 3 ? ClampByte(c[3]) : (byte)255);
         }
     }
 }
